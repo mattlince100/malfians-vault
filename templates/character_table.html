@@ -467,6 +467,12 @@
                         </select>
                     </div>
                     <div class="col-md-2">
+                        <label for="roleFilter" class="form-label">Role</label>
+                        <select id="roleFilter" class="form-select form-select-sm" onchange="applyFilters()">
+                            <option value="">All Roles</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
                         <label for="needsFilter" class="form-label">Has Needs</label>
                         <select id="needsFilter" class="form-select form-select-sm" onchange="applyFilters()">
                             <option value="">All Characters</option>
@@ -814,6 +820,10 @@
                 order: [[0, 'asc']],
                 columnDefs: [
                     { targets: 7, type: 'string', orderable: true }, // Role column - explicitly enable string sorting
+                    { targets: 8, type: 'num', orderable: true }, // HP column - numeric sorting
+                    { targets: 9, type: 'num', orderable: true }, // DR column - numeric sorting  
+                    { targets: 12, type: 'num', orderable: true }, // Glory column - numeric sorting
+                    { targets: 13, type: 'num', orderable: true }, // Gold column - numeric sorting
                     { targets: -1, orderable: false } // Needs column
                 ],
                 language: {
@@ -903,6 +913,7 @@
             // Get unique values for filter dropdowns
             const classes = [...new Set(characterData.map(char => char.class).filter(c => c && c !== 'Unknown'))].sort();
             const races = [...new Set(characterData.map(char => char.race).filter(r => r && r !== 'Unknown'))].sort();
+            const roles = [...new Set(characterData.map(char => char.role).filter(r => r && r.trim() !== ''))].sort();
             
             // Populate class filter - preserve special options
             const classFilter = document.getElementById('classFilter');
@@ -920,6 +931,13 @@
             raceFilter.innerHTML = '<option value="">All Races</option>';
             races.forEach(race => {
                 raceFilter.innerHTML += `<option value="${race}">${race}</option>`;
+            });
+            
+            // Populate role filter
+            const roleFilter = document.getElementById('roleFilter');
+            roleFilter.innerHTML = '<option value="">All Roles</option>';
+            roles.forEach(role => {
+                roleFilter.innerHTML += `<option value="${role}">${role}</option>`;
             });
         }
         
@@ -956,6 +974,7 @@
             const raceFilter = document.getElementById('raceFilter').value;
             const genderFilter = document.getElementById('genderFilter').value;
             const alignFilter = document.getElementById('alignFilter').value;
+            const roleFilter = document.getElementById('roleFilter').value;
             const needsFilter = document.getElementById('needsFilter').value;
             
             // Apply filters to DataTable
@@ -981,6 +1000,9 @@
             
             // Gender filter
             table.column(11).search(genderFilter);
+            
+            // Role filter
+            table.column(7).search(roleFilter);
             
             // Alignment filter - custom filtering by numeric value
             if (alignFilter) {
@@ -1078,6 +1100,7 @@
             document.getElementById('raceFilter').value = '';
             document.getElementById('genderFilter').value = '';
             document.getElementById('alignFilter').value = '';
+            document.getElementById('roleFilter').value = '';
             document.getElementById('needsFilter').value = '';
             
             // Clear all DataTable filters including custom alignment filter

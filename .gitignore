@@ -12,8 +12,9 @@ credentials.json
 character_stats_*.csv
 inventory_backup_*.csv
 
-# Log files
-logs/
+# Log files (keep directory, ignore contents)
+logs/*
+!logs/.gitkeep
 *.log
 
 # Python
