@@ -1,0 +1,5 @@
+character,house_name,rooms
+Malfian,Malfian's Tower,"Main Hall:start:chest,cabinet,vault;Storage Room:u:bag,sack,barrel;Treasure Room:u;u;n:strongbox,safe;Workshop:d;d;e:toolbox,crate"
+Kroc,Riverside Cottage,"Living Room:start:basket,box;Kitchen:n:cupboard,pantry;Bedroom:s;e:wardrobe,chest"
+Azrael,Mountain Fortress,"Great Hall:start:throne,pedestal;Armory:w:rack,stand,chest;Treasury:e;n:vault,coffer,safe"
+Dresden,Wizard's Tower,"Study:start:bookshelf,desk;Laboratory:u:table,cabinet;Vault:u;n;open vault;n:chest,box,safe"

@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Malfian's Vault - Realms of Despair Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #0a0e1a;
+            --secondary-bg: #141925;
+            --accent-bg: #1e2436;
+            --border-color: #2a3142;
+            --text-primary: #e8eaf0;
+            --text-secondary: #9ca3b8;
+            --accent-color: #7c3aed;
+            --accent-hover: #6d28d9;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --gold-color: #fbbf24;
+            --magic-glow: #c084fc;
+            --legendary-color: #f97316;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:wght@400;600&display=swap');
+        
+        body {
+            background: var(--primary-bg);
+            background-image: 
+                radial-gradient(ellipse at top left, rgba(124, 58, 237, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(192, 132, 252, 0.05) 0%, transparent 50%);
+            color: var(--text-primary);
+            font-family: 'Crimson Text', serif;
+            padding: 0;
+            margin: 0;
+            min-height: 100vh;
+        }
+        
+        .main-wrapper {
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header-section {
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--secondary-bg), var(--accent-bg));
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--accent-color), var(--magic-glow), var(--accent-color));
+            border-radius: 12px;
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.3s ease;
+        }
+        
+        .stat-card:hover::before {
+            opacity: 0.3;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(124, 58, 237, 0.2);
+        }
+
+        .stat-card h5 {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            font-family: 'Cinzel', serif;
+            letter-spacing: 0.1em;
+        }
+
+        .stat-card .stat-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-family: 'Cinzel', serif;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .gold-value {
+            color: var(--gold-color);
+        }
+
+        .character-table {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table th {
+            background: var(--accent-bg);
+            border-color: var(--border-color);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .table td {
+            border-color: var(--border-color);
+            vertical-align: middle;
+            font-size: 0.875rem;
+        }
+
+        .character-name {
+            font-weight: 600;
+            color: var(--accent-color);
+            cursor: pointer;
+        }
+
+        .character-name:hover {
+            text-decoration: underline;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, var(--accent-color), var(--accent-hover));
+            border: 1px solid var(--accent-color);
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(45deg, var(--accent-hover), var(--magic-glow));
+            border-color: var(--magic-glow);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+        }
+        
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+        
+        .btn-secondary {
+            background: var(--accent-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+            background: var(--border-color);
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .navbar {
+            background: linear-gradient(to bottom, var(--secondary-bg), rgba(20, 25, 37, 0.95)) !important;
+            border-bottom: 2px solid var(--accent-color);
+            box-shadow: 0 4px 20px rgba(124, 58, 237, 0.15);
+            padding: 1.2rem 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+            color: var(--text-primary) !important;
+        }
+
+        .nav-link {
+            color: var(--text-secondary) !important;
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary) !important;
+        }
+
+        .nav-link.active {
+            color: var(--accent-color) !important;
+        }
+
+        /* DataTables dark theme customization */
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter,
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_paginate {
+            color: var(--text-secondary);
+        }
+
+        .dataTables_wrapper .dataTables_filter input {
+            background: var(--accent-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.375rem 0.75rem;
+            border-radius: 4px;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            background: var(--accent-color) !important;
+            border-color: var(--accent-color) !important;
+            color: white !important;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background: var(--accent-bg) !important;
+            border-color: var(--border-color) !important;
+            color: var(--text-primary) !important;
+        }
+
+        .placeholder-needs {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+        
+        .form-check-input:checked {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+        
+        .form-check-input:focus {
+            box-shadow: 0 0 0 0.25rem rgba(124, 58, 237, 0.25);
+        }
+
+        /* Class row color coding - text only */
+        .row-mage td { color: #00FFFF; } /* Cyan */
+        .row-cleric td { color: #FFFFFF; } /* White */
+        .row-thief td { color: #FFFF00; } /* Yellow */
+        .row-warrior td { color: #D2691E; } /* Light Brown for better visibility */
+        .row-vampire td { color: #FF6B6B; } /* Bright Red */
+        .row-dread td { color: #FF6B6B; } /* Bright Red - same as vampire */
+        .row-druid td { color: #00FF00; } /* Green */
+        .row-ranger td { color: #32CD32; } /* Forest Green */
+        .row-augurer td { color: #B0B0B0; } /* Gray */
+        .row-paladin td { color: #FFB6C1; } /* Pink */
+        .row-nephandi td { color: #9400D3; } /* Purple */
+        .row-fathomer td { color: #5F9EA0; } /* Ocean Blue */
+        .row-bladesinger td { color: #CD5C5C; } /* Dull Red */
+        .row-barbarian td { color: #FFA500; } /* Orange */
+        
+        /* Ensure gold value maintains its color */
+        .row-mage .gold-value,
+        .row-cleric .gold-value,
+        .row-thief .gold-value,
+        .row-warrior .gold-value,
+        .row-vampire .gold-value,
+        .row-dread .gold-value,
+        .row-druid .gold-value,
+        .row-ranger .gold-value,
+        .row-augurer .gold-value,
+        .row-paladin .gold-value,
+        .row-nephandi .gold-value,
+        .row-fathomer .gold-value,
+        .row-bladesinger .gold-value,
+        .row-barbarian .gold-value {
+            color: var(--gold-color) !important;
+        }
+        
+        /* Editable role field styles */
+        .role-input {
+            background: var(--accent-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            width: 100%;
+            min-width: 120px;
+        }
+        
+        .role-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.2rem rgba(88, 166, 255, 0.25);
+        }
+        
+        .role-save-indicator {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.75rem;
+            display: none;
+        }
+        
+        .role-save-indicator.success {
+            color: var(--success-color);
+        }
+        
+        .role-save-indicator.error {
+            color: var(--danger-color);
+        }
+        
+        /* Character names inherit row color */
+        .row-mage .character-name { color: #00FFFF !important; }
+        .row-cleric .character-name { color: #FFFFFF !important; }
+        .row-thief .character-name { color: #FFFF00 !important; }
+        .row-warrior .character-name { color: #D2691E !important; }
+        .row-vampire .character-name { color: #FF6B6B !important; }
+        .row-dread .character-name { color: #FF6B6B !important; }
+        .row-druid .character-name { color: #00FF00 !important; }
+        .row-ranger .character-name { color: #32CD32 !important; }
+        .row-augurer .character-name { color: #B0B0B0 !important; }
+        .row-paladin .character-name { color: #FFB6C1 !important; }
+        .row-nephandi .character-name { color: #9400D3 !important; }
+        .row-fathomer .character-name { color: #5F9EA0 !important; }
+        .row-bladesinger .character-name { color: #CD5C5C !important; }
+        .row-barbarian .character-name { color: #FFA500 !important; }
+        
+        /* Filter controls styling */
+        .form-select {
+            background: var(--accent-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        
+        .form-select:focus {
+            background: var(--accent-bg);
+            border-color: var(--accent-color);
+            color: var(--text-primary);
+            box-shadow: 0 0 0 0.2rem rgba(88, 166, 255, 0.25);
+        }
+        
+        .form-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-wrapper">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#" style="font-family: 'Cinzel', serif; font-weight: 600; font-size: 1.5rem; letter-spacing: 0.05em;">
+                <i class="fas fa-scroll me-2" style="color: var(--magic-glow);"></i>
+                <span style="background: linear-gradient(45deg, var(--accent-color), var(--magic-glow)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Malfian's Vault</span>
+                <small style="display: block; font-size: 0.65rem; font-family: 'Crimson Text', serif; letter-spacing: 0.1em; color: var(--text-secondary); margin-top: -0.2rem;">Realms of Despair Manager</small>
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link active" href="/">
+                    <i class="fas fa-users me-1"></i> Heroes
+                </a>
+                <a class="nav-link" href="/dashboard">
+                    <i class="fas fa-user-circle me-1"></i> Character
+                </a>
+                <a class="nav-link" href="/consolidated-inventory">
+                    <i class="fas fa-treasure-chest me-1"></i> Treasury
+                </a>
+                <a class="nav-link" href="/containers">
+                    <i class="fas fa-cogs me-1"></i> Containers
+                </a>
+                <a class="nav-link" href="/reload" onclick="reloadData(event)">
+                    <i class="fas fa-sync-alt me-1"></i> Refresh
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Stats Overview -->
+    <div class="row mb-4">
+        <div class="col-md-2">
+            <div class="stat-card">
+                <h5>Total Characters</h5>
+                <div class="stat-value" id="totalCharacters">-</div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="stat-card">
+                <h5>Total Gold</h5>
+                <div class="stat-value gold-value" id="totalGold">-</div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="stat-card">
+                <h5>Total Items</h5>
+                <div class="stat-value" id="totalItems">-</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <h5>Last Scan</h5>
+                <div class="stat-value" id="lastScanTime" style="font-size: 1rem; color: var(--text-secondary);">-</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <h5>Quick Actions</h5>
+                <button class="btn btn-primary btn-sm" onclick="window.location.href='/consolidated-inventory'">
+                    <i class="fas fa-treasure-chest me-1"></i> Treasury
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="stat-card">
+                <h5 style="font-family: 'Cinzel', serif; font-weight: 600;"><i class="fas fa-filter me-2" style="color: var(--magic-glow);"></i>Filters</h5>
+                <div class="row g-3">
+                    <div class="col-md-2">
+                        <label for="classFilter" class="form-label">Class <small class="text-muted">(includes prestige)</small></label>
+                        <select id="classFilter" class="form-select form-select-sm" onchange="applyFilters()">
+                            <option value="">All Classes</option>
+                            <option value="__PRESTIGE_ONLY__">Prestige Only</option>
+                            <option value="">─────────────</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="raceFilter" class="form-label">Race</label>
+                        <select id="raceFilter" class="form-select form-select-sm" onchange="applyFilters()">
+                            <option value="">All Races</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="genderFilter" class="form-label">Gender</label>
+                        <select id="genderFilter" class="form-select form-select-sm" onchange="applyFilters()">
+                            <option value="">All Genders</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Neutral">Neutral</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="alignFilter" class="form-label">Alignment</label>
+                        <select id="alignFilter" class="form-select form-select-sm" onchange="applyFilters()">
+                            <option value="">All Alignments</option>
+                            <option value="devout">Devout (250+)</option>
+                            <option value="neutral">Neutral (-250 to +250)</option>
+                            <option value="evil">Evil (-250-)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="needsFilter" class="form-label">Has Needs</label>
+                        <select id="needsFilter" class="form-select form-select-sm" onchange="applyFilters()">
+                            <option value="">All Characters</option>
+                            <option value="yes">Has Equipment Needs</option>
+                            <option value="no">No Equipment Needs</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="needsToggle" class="form-label">Display Options</label>
+                        <div class="form-check form-switch mt-2">
+                            <input class="form-check-input" type="checkbox" id="needsToggle" checked onchange="toggleNeedsColumn()">
+                            <label class="form-check-label" for="needsToggle">
+                                Show Needs Column
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="d-flex flex-column">
+                            <label class="form-label">Actions</label>
+                            <button class="btn btn-secondary btn-sm" onclick="clearFilters()">
+                                <i class="fas fa-times me-1"></i>Clear Filters
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <small class="text-muted" id="filterStatus">Showing all characters</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Character Table -->
+    <div class="character-table">
+        <table id="characterTable" class="table table-dark table-hover">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Class</th>
+                    <th>Race</th>
+                    <th>Level</th>
+                    <th>Age</th>
+                    <th>Org</th>
+                    <th>Align</th>
+                    <th>Role</th>
+                    <th>HP</th>
+                    <th>DR</th>
+                    <th>Deity</th>
+                    <th>Gender</th>
+                    <th>Glory</th>
+                    <th>Gold</th>
+                    <th>Needs</th>
+                </tr>
+            </thead>
+            <tbody id="characterTableBody">
+                <!-- Data will be populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script>
+        let characterData = [];
+        let statsData = {};
+
+        // Load data on page load
+        async function loadData() {
+            try {
+                // Load character list
+                const charResponse = await fetch('/api/characters');
+                const characters = await charResponse.json();
+                
+                // Load character stats
+                const statsResponse = await fetch('/api/character-stats');
+                const stats = await statsResponse.json();
+                
+                // Load overall stats
+                const overallStatsResponse = await fetch('/api/stats');
+                const overallStats = await overallStatsResponse.json();
+                
+                // Load scan info
+                const scanInfoResponse = await fetch('/api/scan-info');
+                const scanInfo = await scanInfoResponse.json();
+                
+                // Create stats lookup (case-insensitive)
+                stats.forEach(stat => {
+                    statsData[stat.character.toLowerCase()] = stat;
+                });
+                
+                // Populate character data
+                characterData = characters.map(char => {
+                    const charStats = statsData[char.toLowerCase()] || {};
+                    return {
+                        name: char,
+                        race: charStats.race || 'Unknown',
+                        class: charStats.class || 'Unknown',
+                        level: charStats.level || 'Unknown',
+                        age: charStats.age || '-',
+                        org: formatOrgMembership(charStats),
+                        align: cleanAlignment(charStats.alignment || 'Unknown'),
+                        role: charStats.custom_role || '',  // Use custom_role from backend
+                        gameRole: formatRoles(charStats),  // Keep game roles for reference
+                        needs: charStats.needs || '-',
+                        hp: charStats.hitpoints || '-',
+                        dr: charStats.damroll || '-',
+                        deity: charStats.deity || '-',
+                        gender: charStats.gender || 'Unknown',
+                        glory: charStats.glory || '0',
+                        gold: parseInt(charStats.gold || 0),
+                        has_house: charStats.has_house || false,
+                        house_name: charStats.house_name || null
+                    };
+                });
+                
+                // Update overview stats
+                updateOverviewStats(overallStats, stats, scanInfo);
+                
+                // Populate table
+                populateTable();
+                
+                // Populate filter dropdowns
+                populateFilters();
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
+
+        function cleanAlignment(alignment) {
+            // Extract just the alignment value from strings like "+1000, devout     Played: 490 hours"
+            const match = alignment.match(/([+-]?\d+)/);
+            if (match) {
+                const value = parseInt(match[1]);
+                const descriptor = getAlignmentDescriptor(value);
+                return `${match[1]} ${descriptor}`;
+            }
+            return alignment;
+        }
+
+        function getAlignmentDescriptor(value) {
+            if (value >= 900) return 'devout';
+            if (value >= 500) return 'noble';
+            if (value >= 100) return 'honorable';
+            if (value >= -100) return 'neutral';
+            if (value >= -500) return 'malicious';
+            if (value >= -900) return 'atrocious';
+            return 'fiendish';
+        }
+
+        function formatOrgMembership(charStats) {
+            // Check new whois data first - Characters can be in Order OR (Sect + Guild), not both
+            if (charStats.order && charStats.order !== '-') {
+                return `Order: ${charStats.order}`;
+            }
+            
+            // If not in an order, show sect and/or guild with prefixes
+            const orgs = [];
+            if (charStats.sect && charStats.sect !== '-') {
+                orgs.push(`Sect: ${charStats.sect}`);
+            }
+            if (charStats.guild && charStats.guild !== '-') {
+                orgs.push(`Guild: ${charStats.guild}`);
+            }
+            
+            if (orgs.length > 0) {
+                return orgs.join(', ');
+            }
+            
+            // Fall back to legacy org field from score parsing (for backward compatibility)
+            if (charStats.org && charStats.org !== '-') {
+                return `Order: ${charStats.org}`;
+            }
+            
+            return '-';
+        }
+
+        function formatRoles(charStats) {
+            // Show roles for the organizations they're in
+            const roles = [];
+            
+            if (charStats.order && charStats.order !== '-' && charStats.order_role && charStats.order_role !== '-') {
+                roles.push(charStats.order_role);
+            } else {
+                // Show sect and guild roles if applicable
+                if (charStats.sect && charStats.sect !== '-' && charStats.sect_role && charStats.sect_role !== '-') {
+                    roles.push(`${charStats.sect_role} (Sect)`);
+                }
+                if (charStats.guild && charStats.guild !== '-' && charStats.guild_role && charStats.guild_role !== '-') {
+                    roles.push(`${charStats.guild_role} (Guild)`);
+                }
+            }
+            
+            return roles.length > 0 ? roles.join(', ') : '-';
+        }
+
+        function updateOverviewStats(overallStats, characterStats, scanInfo) {
+            document.getElementById('totalCharacters').textContent = overallStats.total_characters || '0';
+            document.getElementById('totalItems').textContent = overallStats.total_items || '0';
+            
+            // Calculate total gold
+            const totalGold = characterStats.reduce((sum, char) => sum + parseInt(char.gold || 0), 0);
+            document.getElementById('totalGold').textContent = formatGold(totalGold);
+            
+            // Update last scan time
+            if (scanInfo.last_stats_scan) {
+                const scanDate = new Date(scanInfo.last_stats_scan);
+                const now = new Date();
+                const diffMs = now - scanDate;
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHours = Math.floor(diffMs / 3600000);
+                const diffDays = Math.floor(diffMs / 86400000);
+                
+                let timeText;
+                if (diffMins < 1) {
+                    timeText = 'Just now';
+                } else if (diffMins < 60) {
+                    timeText = `${diffMins}m ago`;
+                } else if (diffHours < 24) {
+                    timeText = `${diffHours}h ago`;
+                } else {
+                    timeText = `${diffDays}d ago`;
+                }
+                
+                document.getElementById('lastScanTime').textContent = timeText;
+                document.getElementById('lastScanTime').title = scanDate.toLocaleString();
+            } else {
+                document.getElementById('lastScanTime').textContent = 'Never';
+            }
+        }
+
+        function formatGold(amount) {
+            return amount.toLocaleString();
+        }
+
+        function getClassColor(className) {
+            if (!className) return '';
+            
+            const classLower = className.toLowerCase();
+            
+            // Check primary class (first part before hyphen)
+            const primaryClass = classLower.split('-')[0];
+            
+            // Mage variations
+            if (classLower.startsWith('mage')) return 'class-mage';
+            
+            // Cleric variations
+            if (classLower.startsWith('cleric')) return 'class-cleric';
+            
+            // Thief variations
+            if (classLower.startsWith('thief')) return 'class-thief';
+            
+            // Warrior variations
+            if (classLower.startsWith('warrior')) return 'class-warrior';
+            
+            // Vampire and Dread variations (both use same red color)
+            if (classLower === 'dread') return 'class-dread';
+            if (classLower.includes('vampire')) return 'class-vampire';
+            
+            // Druid variations
+            if (classLower.startsWith('druid')) return 'class-druid';
+            
+            // Ranger variations
+            if (classLower === 'ranger' || classLower === 'hunter') return 'class-ranger';
+            
+            // Augurer variations
+            if (classLower === 'augurer' || classLower === 'harbinger') return 'class-augurer';
+            
+            // Paladin variations
+            if (classLower === 'paladin' || classLower === 'knight') return 'class-paladin';
+            
+            // Nephandi variations
+            if (classLower === 'nephandi' || classLower === 'infernalist') return 'class-nephandi';
+            
+            // Fathomer variations
+            if (classLower === 'fathomer' || classLower === 'buccaneer') return 'class-fathomer';
+            
+            // Bladesinger
+            if (classLower === 'bladesinger') return 'class-bladesinger';
+            
+            // Barbarian
+            if (classLower === 'barbarian') return 'class-barbarian';
+            
+            return '';
+        }
+
+        function populateTable() {
+            const tbody = document.getElementById('characterTableBody');
+            tbody.innerHTML = '';
+            
+            characterData.forEach(char => {
+                const row = document.createElement('tr');
+                row.className = getClassColor(char.class).replace('class-', 'row-');
+                const houseIcon = char.has_house ? 
+                    `<a href="/dashboard?char=${char.house_name}" class="house-icon" title="View ${char.name}'s House">
+                        <i class="fas fa-home"></i>
+                    </a>` : '';
+                
+                row.innerHTML = `
+                    <td>
+                        <a href="/dashboard?char=${char.name}" class="character-name">${char.name.charAt(0).toUpperCase() + char.name.slice(1)}</a>
+                        ${houseIcon}
+                    </td>
+                    <td>${char.class}</td>
+                    <td>${char.race}</td>
+                    <td>${char.level}</td>
+                    <td>${char.age}</td>
+                    <td>${char.org}</td>
+                    <td>${char.align}</td>
+                    <td style="position: relative;">
+                        <input type="text" 
+                               class="role-input" 
+                               data-character="${char.name}" 
+                               value="${char.role}" 
+                               placeholder="Add role..."
+                               title="Game role: ${char.gameRole}">
+                        <span class="role-save-indicator">
+                            <i class="fas fa-check"></i>
+                        </span>
+                    </td>
+                    <td>${char.hp}</td>
+                    <td>${char.dr}</td>
+                    <td>${char.deity}</td>
+                    <td>${char.gender}</td>
+                    <td>${char.glory}</td>
+                    <td class="gold-value">${formatGold(char.gold)}</td>
+                    <td><span class="placeholder-needs">${char.needs}</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            // Initialize DataTable
+            if ($.fn.DataTable.isDataTable('#characterTable')) {
+                $('#characterTable').DataTable().destroy();
+            }
+            
+            $('#characterTable').DataTable({
+                pageLength: 100,
+                lengthMenu: [25, 50, 100, 250, 500, -1],
+                lengthChange: true,
+                order: [[0, 'asc']],
+                columnDefs: [
+                    { targets: 7, type: 'string', orderable: true }, // Role column - explicitly enable string sorting
+                    { targets: -1, orderable: false } // Needs column
+                ],
+                language: {
+                    search: "Search characters:",
+                    lengthMenu: "Show _MENU_ characters per page",
+                    info: "Showing _START_ to _END_ of _TOTAL_ characters",
+                    infoEmpty: "No characters found",
+                    infoFiltered: "(filtered from _MAX_ total characters)",
+                    paginate: {
+                        first: "First",
+                        last: "Last",
+                        next: "Next",
+                        previous: "Previous"
+                    }
+                }
+            });
+            
+            // Load the needs column preference after table is created
+            loadNeedsColumnPreference();
+        }
+
+        async function reloadData(event) {
+            event.preventDefault();
+            try {
+                const response = await fetch('/reload');
+                const result = await response.json();
+                if (result.status === 'success') {
+                    location.reload();
+                }
+            } catch (error) {
+                console.error('Error reloading data:', error);
+            }
+        }
+
+        // Handle role input changes
+        let saveTimeout;
+        $(document).on('input', '.role-input', function() {
+            const input = $(this);
+            const character = input.data('character');
+            const newRole = input.val();
+            const indicator = input.siblings('.role-save-indicator');
+            
+            // Clear previous timeout
+            clearTimeout(saveTimeout);
+            
+            // Show saving indicator after a short delay
+            saveTimeout = setTimeout(async () => {
+                try {
+                    const response = await fetch('/api/update-role', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            character: character,
+                            role: newRole
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        // Show success indicator
+                        indicator.removeClass('error').addClass('success');
+                        indicator.html('<i class="fas fa-check"></i>');
+                        indicator.fadeIn(200);
+                        
+                        // Hide after 2 seconds
+                        setTimeout(() => {
+                            indicator.fadeOut(200);
+                        }, 2000);
+                    } else {
+                        // Show error indicator
+                        indicator.removeClass('success').addClass('error');
+                        indicator.html('<i class="fas fa-times"></i>');
+                        indicator.fadeIn(200);
+                    }
+                } catch (error) {
+                    console.error('Error saving role:', error);
+                    indicator.removeClass('success').addClass('error');
+                    indicator.html('<i class="fas fa-times"></i>');
+                    indicator.fadeIn(200);
+                }
+            }, 500); // Wait 500ms after user stops typing
+        });
+
+        // Filter functions
+        function populateFilters() {
+            // Get unique values for filter dropdowns
+            const classes = [...new Set(characterData.map(char => char.class).filter(c => c && c !== 'Unknown'))].sort();
+            const races = [...new Set(characterData.map(char => char.race).filter(r => r && r !== 'Unknown'))].sort();
+            
+            // Populate class filter - preserve special options
+            const classFilter = document.getElementById('classFilter');
+            classFilter.innerHTML = `
+                <option value="">All Classes</option>
+                <option value="__PRESTIGE_ONLY__">Prestige Only</option>
+                <option value="">─────────────</option>
+            `;
+            classes.forEach(cls => {
+                classFilter.innerHTML += `<option value="${cls}">${cls}</option>`;
+            });
+            
+            // Populate race filter
+            const raceFilter = document.getElementById('raceFilter');
+            raceFilter.innerHTML = '<option value="">All Races</option>';
+            races.forEach(race => {
+                raceFilter.innerHTML += `<option value="${race}">${race}</option>`;
+            });
+        }
+        
+        // Define prestige class mappings
+        const prestigeClassMappings = {
+            'Mage': ['Mage', 'Mage-Cleric', 'Mage-Thief', 'Mage-Warrior', 'Mage-Druid'],
+            'Cleric': ['Cleric', 'Cleric-Mage', 'Cleric-Thief', 'Cleric-Warrior', 'Cleric-Druid'],
+            'Thief': ['Thief', 'Thief-Mage', 'Thief-Cleric', 'Thief-Warrior', 'Thief-Druid'],
+            'Warrior': ['Warrior', 'Warrior-Mage', 'Warrior-Cleric', 'Warrior-Thief', 'Warrior-Druid'],
+            'Druid': ['Druid', 'Druid-Mage', 'Druid-Cleric', 'Druid-Thief', 'Druid-Warrior'],
+            'Vampire': ['Vampire', 'Dread Vampire', 'Dread'],
+            'Ranger': ['Ranger', 'Hunter'],
+            'Augurer': ['Augurer', 'Harbinger'],
+            'Paladin': ['Paladin', 'Knight'],
+            'Nephandi': ['Nephandi', 'Infernalist'],
+            'Fathomer': ['Fathomer', 'Buccaneer'],
+            // Classes without prestige options
+            'Barbarian': ['Barbarian'],
+            'Bard': ['Bard']
+        };
+        
+        // Get all prestige classes (excluding base classes)
+        const allPrestigeClasses = [
+            'Mage-Cleric', 'Mage-Thief', 'Mage-Warrior', 'Mage-Druid',
+            'Cleric-Mage', 'Cleric-Thief', 'Cleric-Warrior', 'Cleric-Druid',
+            'Thief-Mage', 'Thief-Cleric', 'Thief-Warrior', 'Thief-Druid',
+            'Warrior-Mage', 'Warrior-Cleric', 'Warrior-Thief', 'Warrior-Druid',
+            'Druid-Mage', 'Druid-Cleric', 'Druid-Thief', 'Druid-Warrior',
+            'Dread Vampire', 'Dread', 'Hunter', 'Harbinger', 'Knight', 'Infernalist', 'Buccaneer'
+        ];
+        
+        function applyFilters() {
+            const classFilter = document.getElementById('classFilter').value;
+            const raceFilter = document.getElementById('raceFilter').value;
+            const genderFilter = document.getElementById('genderFilter').value;
+            const alignFilter = document.getElementById('alignFilter').value;
+            const needsFilter = document.getElementById('needsFilter').value;
+            
+            // Apply filters to DataTable
+            const table = $('#characterTable').DataTable();
+            
+            // Class filter with prestige class support
+            if (classFilter === '__PRESTIGE_ONLY__') {
+                // Show only prestige classes
+                const pattern = allPrestigeClasses.join('|');
+                table.column(1).search(pattern, true, false);
+            } else if (classFilter && prestigeClassMappings[classFilter]) {
+                // Create regex pattern to match base class and all its prestige classes
+                const classes = prestigeClassMappings[classFilter];
+                const pattern = classes.join('|');
+                table.column(1).search(pattern, true, false);
+            } else {
+                // If not a base class with prestiges, search normally
+                table.column(1).search(classFilter);
+            }
+            
+            // Race filter  
+            table.column(2).search(raceFilter);
+            
+            // Gender filter
+            table.column(11).search(genderFilter);
+            
+            // Alignment filter - custom filtering by numeric value
+            if (alignFilter) {
+                // Use DataTables custom filtering
+                $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+                    if (settings.nTable.id !== 'characterTable') return true;
+                    
+                    const alignText = data[6]; // Alignment column
+                    
+                    // Extract numeric value from alignment text (e.g., "devout (450)" -> 450)
+                    const alignMatch = alignText.match(/\(([+-]?\d+)\)/);
+                    if (!alignMatch) return true; // Show if no numeric value found
+                    
+                    const alignValue = parseInt(alignMatch[1]);
+                    
+                    switch(alignFilter) {
+                        case 'devout': return alignValue >= 250;
+                        case 'neutral': return alignValue >= -250 && alignValue <= 250;
+                        case 'evil': return alignValue <= -250;
+                        default: return true;
+                    }
+                });
+                
+                // Clear any previous column search and trigger custom filter
+                table.column(6).search('');
+            } else {
+                // Remove custom filter when no alignment filter selected
+                $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(function(fn) {
+                    return fn.toString().indexOf('alignFilter') === -1;
+                });
+                table.column(6).search('');
+            }
+            
+            // Needs filter
+            if (needsFilter === 'yes') {
+                table.column(14).search('^(?!-).*', true, false); // Not starting with '-'
+            } else if (needsFilter === 'no') {
+                table.column(14).search('^-$', true, false); // Exactly '-'
+            } else {
+                table.column(14).search('');
+            }
+            
+            table.draw();
+            
+            // Update filter status
+            updateFilterStatus();
+        }
+        
+        function toggleNeedsColumn() {
+            const table = $('#characterTable').DataTable();
+            const needsToggle = document.getElementById('needsToggle');
+            const needsColumnIndex = 14; // Needs column is the last column (index 14)
+            
+            // Toggle column visibility
+            const column = table.column(needsColumnIndex);
+            column.visible(needsToggle.checked);
+            
+            // Save preference to localStorage
+            localStorage.setItem('showNeedsColumn', needsToggle.checked);
+            
+            // If hiding the column, also clear the needs filter
+            if (!needsToggle.checked) {
+                document.getElementById('needsFilter').value = '';
+                document.getElementById('needsFilter').disabled = true;
+                table.column(needsColumnIndex).search('');
+            } else {
+                document.getElementById('needsFilter').disabled = false;
+            }
+            
+            // Redraw table and update filter status
+            table.draw();
+            updateFilterStatus();
+        }
+        
+        function loadNeedsColumnPreference() {
+            const showNeeds = localStorage.getItem('showNeedsColumn');
+            const needsToggle = document.getElementById('needsToggle');
+            
+            // Default to true if no preference saved
+            if (showNeeds === null) {
+                needsToggle.checked = true;
+            } else {
+                needsToggle.checked = showNeeds === 'true';
+            }
+            
+            // Apply the preference after table is initialized
+            setTimeout(() => {
+                toggleNeedsColumn();
+            }, 100);
+        }
+        
+        function clearFilters() {
+            // Reset all filter dropdowns
+            document.getElementById('classFilter').value = '';
+            document.getElementById('raceFilter').value = '';
+            document.getElementById('genderFilter').value = '';
+            document.getElementById('alignFilter').value = '';
+            document.getElementById('needsFilter').value = '';
+            
+            // Clear all DataTable filters including custom alignment filter
+            $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(function(fn) {
+                return fn.toString().indexOf('alignFilter') === -1;
+            });
+            
+            const table = $('#characterTable').DataTable();
+            table.search('').columns().search('').draw();
+            
+            // Update filter status
+            updateFilterStatus();
+        }
+        
+        function updateFilterStatus() {
+            const table = $('#characterTable').DataTable();
+            const totalRecords = table.data().length;
+            const filteredRecords = table.rows({filter: 'applied'}).data().length;
+            
+            const statusElement = document.getElementById('filterStatus');
+            if (filteredRecords === totalRecords) {
+                statusElement.textContent = `Showing all ${totalRecords} characters`;
+            } else {
+                statusElement.textContent = `Showing ${filteredRecords} of ${totalRecords} characters`;
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+    </div>
+    
+    <style>
+        /* Additional theme enhancements */
+        .table th {
+            font-family: 'Cinzel', serif;
+            font-weight: 600;
+            background: linear-gradient(to bottom, var(--accent-bg), rgba(30, 36, 54, 0.95));
+        }
+        
+        .character-name {
+            transition: all 0.3s ease;
+        }
+        
+        .character-name:hover {
+            text-shadow: 0 0 8px currentColor;
+            transform: scale(1.05);
+        }
+        
+        .house-icon {
+            margin-left: 10px;
+            color: var(--gold-color);
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        
+        .house-icon:hover {
+            color: var(--legendary-color);
+            text-shadow: 0 0 10px var(--gold-color);
+            transform: scale(1.2);
+        }
+        
+        /* Animated background effect */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .stat-card .fas {
+            animation: float 4s ease-in-out infinite;
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--primary-bg);
+            border-radius: 6px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, var(--accent-color), var(--magic-glow));
+            border-radius: 6px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--magic-glow);
+        }
+        
+        /* Page load animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .stat-card, .character-table {
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+        .stat-card:nth-child(4) { animation-delay: 0.4s; }
+        .stat-card:nth-child(5) { animation-delay: 0.5s; }
+    </style>
+</body>
+</html>

@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+
+{% block title %}Container Management - Malfian's Vault{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="vault-title">
+                    <i class="fas fa-boxes me-3"></i>
+                    Smart Container Management
+                </h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Home</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Containers</li>
+                    </ol>
+                </nav>
+            </div>
+
+            <!-- Statistics Card -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-chart-bar me-2"></i>
+                                Container Statistics
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="text-center">
+                                        <h3 class="text-warning" id="totalMappings">-</h3>
+                                        <small>Total Mappings</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-center">
+                                        <h3 class="text-info" id="lastUpdated">-</h3>
+                                        <small>Last Updated</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-info-circle me-2"></i>
+                                How It Works
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-1"><strong>Smart Inventory Scan</strong> automatically detects containers in your inventory.</p>
+                            <p class="mb-1">Add mappings here to teach the system about new container types.</p>
+                            <p class="mb-0">Example: "a laundry basket" → "my.basket"</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add New Container Form -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-plus me-2"></i>
+                        Add New Container Mapping
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="addContainerForm">
+                        <div class="row">
+                            <div class="col-md-5">
+                                <label for="itemName" class="form-label">Item Name (as it appears in inventory)</label>
+                                <input type="text" class="form-control" id="itemName" 
+                                       placeholder="e.g., a laundry basket" required>
+                                <div class="form-text">Enter the exact name as it appears in your inventory</div>
+                            </div>
+                            <div class="col-md-5">
+                                <label for="containerKeyword" class="form-label">Container Keyword (for examining)</label>
+                                <input type="text" class="form-control" id="containerKeyword" 
+                                       placeholder="e.g., my.basket" required>
+                                <div class="form-text">The keyword used in "exam [keyword]" command</div>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-success w-100">
+                                    <i class="fas fa-plus me-1"></i>Add
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Container Mappings Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        Current Container Mappings
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="containersTable">
+                            <thead>
+                                <tr>
+                                    <th>Item Name</th>
+                                    <th>Container Keyword</th>
+                                    <th>Example Command</th>
+                                    <th width="100">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="containersTableBody">
+                                <!-- Dynamic content loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success/Error Modal -->
+<div class="modal fade" id="messageModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="messageModalTitle">Notice</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="messageModalBody">
+                <!-- Dynamic message content -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let containers = {};
+
+// Load container data on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadContainerStats();
+    loadContainers();
+});
+
+// Add container form submission
+document.getElementById('addContainerForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const itemName = document.getElementById('itemName').value.trim();
+    const containerKeyword = document.getElementById('containerKeyword').value.trim();
+    
+    if (!itemName || !containerKeyword) {
+        showMessage('Error', 'Both fields are required', 'danger');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/containers', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                item_name: itemName,
+                container_keyword: containerKeyword
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.success) {
+            showMessage('Success', result.message, 'success');
+            document.getElementById('addContainerForm').reset();
+            loadContainers();
+            loadContainerStats();
+        } else {
+            showMessage('Error', result.error || 'Failed to add container mapping', 'danger');
+        }
+    } catch (error) {
+        showMessage('Error', 'Network error: ' + error.message, 'danger');
+    }
+});
+
+// Load container statistics
+async function loadContainerStats() {
+    try {
+        const response = await fetch('/api/containers/stats');
+        const stats = await response.json();
+        
+        document.getElementById('totalMappings').textContent = stats.total_mappings || 0;
+        
+        if (stats.last_loaded) {
+            const date = new Date(stats.last_loaded);
+            document.getElementById('lastUpdated').textContent = date.toLocaleTimeString();
+        }
+    } catch (error) {
+        console.error('Error loading container stats:', error);
+    }
+}
+
+// Load container mappings
+async function loadContainers() {
+    try {
+        const response = await fetch('/api/containers');
+        containers = await response.json();
+        
+        const tbody = document.getElementById('containersTableBody');
+        tbody.innerHTML = '';
+        
+        if (Object.keys(containers).length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No container mappings found</td></tr>';
+            return;
+        }
+        
+        for (const [itemName, containerKeyword] of Object.entries(containers)) {
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td>${escapeHtml(itemName)}</td>
+                <td><code>${escapeHtml(containerKeyword)}</code></td>
+                <td><code>exam ${escapeHtml(containerKeyword)}</code></td>
+                <td>
+                    <button class="btn btn-danger btn-sm" onclick="deleteContainer('${escapeHtml(itemName)}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading containers:', error);
+        showMessage('Error', 'Failed to load container mappings', 'danger');
+    }
+}
+
+// Delete container mapping
+async function deleteContainer(itemName) {
+    if (!confirm(`Are you sure you want to delete the mapping for "${itemName}"?`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/containers/${encodeURIComponent(itemName)}`, {
+            method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.success) {
+            showMessage('Success', result.message, 'success');
+            loadContainers();
+            loadContainerStats();
+        } else {
+            showMessage('Error', result.error || 'Failed to delete container mapping', 'danger');
+        }
+    } catch (error) {
+        showMessage('Error', 'Network error: ' + error.message, 'danger');
+    }
+}
+
+// Show message modal
+function showMessage(title, message, type) {
+    document.getElementById('messageModalTitle').textContent = title;
+    document.getElementById('messageModalBody').innerHTML = `
+        <div class="alert alert-${type} mb-0">
+            ${escapeHtml(message)}
+        </div>
+    `;
+    
+    const modal = new bootstrap.Modal(document.getElementById('messageModal'));
+    modal.show();
+}
+
+// Escape HTML to prevent XSS
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
+{% endblock %}

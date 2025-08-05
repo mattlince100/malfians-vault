@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Malfian's Vault - Realms of Despair Manager{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:wght@400;600&display=swap');
+        
+        :root {
+            --primary-bg: #0a0e1a;
+            --secondary-bg: #141925;
+            --accent-bg: #1e2436;
+            --border-color: #2a3142;
+            --text-primary: #e8eaf0;
+            --text-secondary: #9ca3b8;
+            --accent-color: #7c3aed;
+            --accent-hover: #6d28d9;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --gold-color: #fbbf24;
+            --magic-glow: #c084fc;
+            --legendary-color: #f97316;
+        }
+
+        body {
+            background: var(--primary-bg);
+            background-image: 
+                radial-gradient(ellipse at top left, rgba(124, 58, 237, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(192, 132, 252, 0.05) 0%, transparent 50%);
+            color: var(--text-primary);
+            font-family: 'Crimson Text', serif;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar {
+            background: linear-gradient(to bottom, var(--secondary-bg), rgba(20, 25, 37, 0.95)) !important;
+            border-bottom: 2px solid var(--accent-color);
+            box-shadow: 0 4px 20px rgba(124, 58, 237, 0.15);
+            backdrop-filter: blur(10px);
+        }
+
+        .navbar-brand {
+            font-family: 'Cinzel', serif;
+            font-weight: 600;
+            font-size: 1.5rem;
+            letter-spacing: 0.05em;
+            color: var(--text-primary) !important;
+        }
+
+        .nav-link {
+            color: var(--text-secondary) !important;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            color: var(--text-primary) !important;
+        }
+        
+        .nav-link.active {
+            color: var(--accent-color) !important;
+        }
+
+        .card {
+            background: linear-gradient(135deg, var(--secondary-bg), var(--accent-bg));
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            color: var(--text-primary);
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(124, 58, 237, 0.2);
+        }
+
+        .stats-card {
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        .stats-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            font-family: 'Cinzel', serif;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .stats-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: 'Cinzel', serif;
+        }
+
+        .item-card {
+            border-left: 4px solid var(--secondary-color);
+            margin-bottom: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .item-card:hover {
+            border-left-color: var(--accent-color);
+        }
+
+        .magical-item {
+            border-left-color: #9b59b6 !important;
+            background: linear-gradient(45deg, rgba(155, 89, 182, 0.1), rgba(142, 68, 173, 0.1));
+        }
+
+        .glowing-item {
+            border-left-color: #f1c40f !important;
+            background: linear-gradient(45deg, rgba(241, 196, 15, 0.1), rgba(243, 156, 18, 0.1));
+        }
+
+        .equipment-slot {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+
+        .quantity-badge {
+            background: var(--accent-color);
+            color: white;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .container-tab {
+            border-radius: 10px 10px 0 0;
+            background: linear-gradient(45deg, var(--secondary-color), #2980b9);
+            color: white;
+            border: none;
+        }
+
+        .container-tab.active {
+            background: linear-gradient(45deg, var(--accent-color), #c0392b);
+        }
+
+        .search-box {
+            border-radius: 25px;
+            border: 2px solid #ddd;
+            padding: 0.75rem 1.5rem;
+            font-size: 1.1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-box:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, var(--accent-color), var(--accent-hover));
+            border: 1px solid var(--accent-color);
+            border-radius: 8px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(45deg, var(--accent-hover), var(--magic-glow));
+            border-color: var(--magic-glow);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+        }
+        
+        .btn-primary:hover::before {
+            left: 100%;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* MUD Terminal Styles */
+        .mud-terminal {
+            background-color: #000;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 2px solid #333;
+            box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.2);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .mud-header {
+            color: #00ff00;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid #333;
+            padding-bottom: 0.25rem;
+        }
+
+        .mud-line {
+            display: flex;
+            margin-bottom: 0.1rem;
+            line-height: 1.2;
+        }
+
+        .equipment-slot-mud {
+            color: #ffff00;
+            min-width: 180px;
+            display: inline-block;
+            text-align: left;
+        }
+
+        .item-text {
+            color: #00ff00;
+            flex-grow: 1;
+            padding-left: 0.5rem;
+        }
+
+        /* Magical item highlighting in terminal */
+        .item-text:contains("(Magical)") {
+            color: #ff00ff;
+        }
+
+        .item-text:contains("(Glowing)") {
+            color: #ffff00;
+        }
+
+        .item-text:contains("(Humming)") {
+            color: #00ffff;
+        }
+
+        .item-text:contains("(Flaming)") {
+            color: #ff6600;
+        }
+
+        /* Inventory terminal styles */
+        .mud-inventory {
+            background-color: #000;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 2px solid #333;
+            box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.2);
+        }
+
+        .inventory-line {
+            margin-bottom: 0.2rem;
+            color: #00ff00;
+        }
+
+        /* Container terminal styles */
+        .mud-container {
+            background-color: #000;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 2px solid #333;
+            box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.2);
+            margin-bottom: 1rem;
+        }
+
+        .container-header {
+            color: #ffff00;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .container-line {
+            margin-bottom: 0.1rem;
+            color: #00ff00;
+            padding-left: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-wrapper">
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-scroll me-2" style="color: var(--magic-glow);"></i>
+                <span style="background: linear-gradient(45deg, var(--accent-color), var(--magic-glow)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Malfian's Vault</span>
+                <small style="display: block; font-size: 0.65rem; font-family: 'Crimson Text', serif; letter-spacing: 0.1em; color: var(--text-secondary); margin-top: -0.2rem;">Realms of Despair Manager</small>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/"><i class="fas fa-users me-1"></i>Heroes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/consolidated-inventory"><i class="fas fa-treasure-chest me-1"></i>Treasury</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard"><i class="fas fa-user-circle me-1"></i>Character</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/containers"><i class="fas fa-boxes me-1"></i>Containers</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/reload"><i class="fas fa-sync-alt me-1"></i>Refresh</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container my-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Add magical item styling based on item names
+        document.addEventListener('DOMContentLoaded', function() {
+            const itemCards = document.querySelectorAll('.item-card');
+            itemCards.forEach(card => {
+                const itemName = card.querySelector('.item-name')?.textContent || '';
+                if (itemName.includes('(Magical)') || itemName.includes('(Humming)')) {
+                    card.classList.add('magical-item');
+                }
+                if (itemName.includes('(Glowing)')) {
+                    card.classList.add('glowing-item');
+                }
+            });
+
+            // Add magical coloring to MUD terminal text
+            const itemTexts = document.querySelectorAll('.item-text, .inventory-line, .container-line');
+            itemTexts.forEach(element => {
+                const text = element.textContent;
+                if (text.includes('(Magical)')) {
+                    element.style.color = '#ff00ff';
+                } else if (text.includes('(Glowing)')) {
+                    element.style.color = '#ffff00';
+                } else if (text.includes('(Humming)')) {
+                    element.style.color = '#00ffff';
+                } else if (text.includes('(Flaming)')) {
+                    element.style.color = '#ff6600';
+                } else if (text.includes('(Smouldering)')) {
+                    element.style.color = '#ff9900';
+                }
+            });
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+    </div>
+    
+    <style>
+        /* Additional enhanced theming */
+        .main-wrapper {
+            padding: 0;
+            min-height: 100vh;
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--primary-bg);
+            border-radius: 6px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, var(--accent-color), var(--magic-glow));
+            border-radius: 6px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--magic-glow);
+        }
+        
+        /* Page animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        .card {
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        /* Enhanced button styling */
+        .btn-secondary {
+            background: var(--accent-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+            background: var(--border-color);
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+    </style>
+</body>
+</html>

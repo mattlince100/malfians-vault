@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}Treasure Vault - MUD Inventory Manager{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="mb-2">
+                                <i class="fas fa-treasure-chest text-warning me-2"></i>
+                                Treasure Vault
+                            </h1>
+                            <p class="text-muted mb-0">All items stored in containers across all characters</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="stats-number text-warning">{{ items|length }}</div>
+                            <div class="stats-label">Unique Items</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <input type="text" id="vaultSearch" class="form-control search-box" 
+                                   placeholder="Search treasure vault...">
+                        </div>
+                        <div class="col-md-4">
+                            <select id="containerFilter" class="form-select">
+                                <option value="">All Containers</option>
+                                <option value="my.basket">Basket</option>
+                                <option value="my.pouch">Pouch</option>
+                                <option value="my.extra">Extra</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Items Grid -->
+    <div class="row" id="vaultItems">
+        {% if items %}
+            {% for item in items %}
+            <div class="col-lg-4 col-md-6 mb-4 vault-item" 
+                 data-container="{{ item.location }}" 
+                 data-name="{{ item.item_name|lower }}">
+                <div class="card item-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="item-name mb-0">{{ item.item_name }}</h6>
+                            <span class="quantity-badge">{{ item.quantity }}</span>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <span class="badge bg-info">{{ item.location }}</span>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <small class="text-muted d-block">{{ item.raw_line }}</small>
+                        </div>
+                        
+                        <div class="characters-list">
+                            <small class="text-muted">Found on:</small>
+                            <div class="mt-1">
+                                {% for character in item.character %}
+                                <a href="/character/{{ character }}" class="badge bg-secondary text-decoration-none me-1">
+                                    {{ character }}
+                                </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                        <h4>No Treasure Found</h4>
+                        <p class="text-muted">No items found in character containers.</p>
+                        <a href="/reload" class="btn btn-primary">
+                            <i class="fas fa-sync-alt me-1"></i>Reload Data
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Summary Statistics -->
+    {% if items %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Vault Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="stats-number text-primary">{{ items|length }}</div>
+                            <div class="stats-label">Unique Items</div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-number text-success">
+                                {{ stats.total_quantity }}
+                            </div>
+                            <div class="stats-label">Total Quantity</div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-number text-warning">
+                                {{ stats.baskets }}
+                            </div>
+                            <div class="stats-label">In Baskets</div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-number text-info">
+                                {{ stats.magical }}
+                            </div>
+                            <div class="stats-label">Magical Items</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Items List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-list me-2"></i>Container Items
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if items %}
+                        <div class="row">
+                            {% for item in items %}
+                                <div class="col-md-6 col-lg-4 mb-3 vault-item" 
+                                     data-name="{{ item.item_name.lower() }}" 
+                                     data-container="{{ item.location }}">
+                                    <div class="card h-100 vault-item-card">
+                                        <div class="card-body">
+                                            <h6 class="card-title text-truncate" title="{{ item.item_name }}">
+                                                {{ item.item_name }}
+                                            </h6>
+                                            <div class="row text-muted small">
+                                                <div class="col-6">
+                                                    <i class="fas fa-box me-1"></i>{{ item.location }}
+                                                </div>
+                                                <div class="col-6 text-end">
+                                                    <i class="fas fa-layer-group me-1"></i>{{ item.quantity }}
+                                                </div>
+                                            </div>
+                                            <div class="mt-2">
+                                                <small class="text-info">
+                                                    <i class="fas fa-user me-1"></i>{{ item.character }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-search fa-3x mb-3"></i>
+                            <h5>No container items found</h5>
+                            <p>Run a scan to populate the treasure vault.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <a href="/" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('vaultSearch');
+        const containerFilter = document.getElementById('containerFilter');
+        const vaultItems = document.querySelectorAll('.vault-item');
+
+        function filterItems() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const containerType = containerFilter.value;
+
+            vaultItems.forEach(item => {
+                const itemName = item.dataset.name;
+                const itemContainer = item.dataset.container;
+                
+                const matchesSearch = itemName.includes(searchTerm);
+                const matchesContainer = !containerType || itemContainer === containerType;
+                
+                if (matchesSearch && matchesContainer) {
+                    item.style.display = 'block';
+                    item.classList.add('fade-in');
+                } else {
+                    item.style.display = 'none';
+                    item.classList.remove('fade-in');
+                }
+            });
+        }
+
+        searchInput.addEventListener('input', filterItems);
+        containerFilter.addEventListener('change', filterItems);
+
+        // Initialize with all items visible
+        filterItems();
+    });
+</script>
+{% endblock %}

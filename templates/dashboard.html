@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Dashboard - Malfian's Vault</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:wght@400;600&display=swap');
+        
+        :root {
+            --primary-bg: #0a0e1a;
+            --secondary-bg: #141925;
+            --accent-bg: #1e2436;
+            --border-color: #2a3142;
+            --text-primary: #e8eaf0;
+            --text-secondary: #9ca3b8;
+            --accent-color: #7c3aed;
+            --accent-hover: #6d28d9;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --gold-color: #fbbf24;
+            --magic-glow: #c084fc;
+            --legendary-color: #f97316;
+        }
+
+        body {
+            background: var(--primary-bg);
+            background-image: 
+                radial-gradient(ellipse at top left, rgba(124, 58, 237, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(192, 132, 252, 0.05) 0%, transparent 50%);
+            color: var(--text-primary);
+            font-family: 'Crimson Text', serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .main-container {
+            height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 400px;
+            background: var(--secondary-bg);
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--accent-bg);
+        }
+
+        .character-list {
+            padding: 1rem;
+        }
+
+        .character-card {
+            background: var(--accent-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .character-card:hover {
+            border-color: var(--accent-color);
+            background: var(--secondary-bg);
+        }
+
+        .character-card.active {
+            border-color: var(--accent-color);
+            background: var(--secondary-bg);
+            box-shadow: 0 0 0 1px var(--accent-color);
+        }
+
+        .character-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .character-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .stat-item {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .stat-label {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .password-field {
+            font-family: monospace;
+            letter-spacing: 2px;
+            color: var(--text-secondary);
+        }
+
+        .password-hidden {
+            filter: blur(3px);
+            transition: filter 0.2s ease;
+        }
+
+        .password-hidden:hover {
+            filter: blur(0);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            background: var(--primary-bg);
+            overflow-y: auto;
+        }
+
+        .content-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--secondary-bg);
+        }
+
+        .content-body {
+            padding: 1.5rem;
+        }
+
+        /* Character Details */
+        .character-details {
+            display: none;
+        }
+
+        .character-details.active {
+            display: block;
+        }
+
+        .detail-card {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-card-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--accent-bg);
+            border-radius: 8px 8px 0 0;
+        }
+
+        .detail-card-body {
+            padding: 1.5rem;
+        }
+
+        /* MUD Terminal Styles */
+        .mud-terminal {
+            background-color: #000;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 1rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            max-height: 600px;
+            overflow-y: auto;
+            font-size: 0.875rem;
+            line-height: 1.4;
+        }
+
+        .mud-header {
+            color: #00ff00;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid #333;
+            padding-bottom: 0.25rem;
+        }
+
+        .mud-line {
+            display: flex;
+            margin-bottom: 0.1rem;
+        }
+
+        .equipment-slot-mud {
+            color: #ffff00;
+            min-width: 200px;
+            display: inline-block;
+        }
+
+        .item-text {
+            color: #00ff00;
+            flex-grow: 1;
+            padding-left: 0.5rem;
+        }
+
+        /* Container styles */
+        .mud-container {
+            background-color: #000;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 1rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+        }
+
+        .container-header {
+            color: #ffff00;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .container-line {
+            margin-bottom: 0.1rem;
+            color: #00ff00;
+            padding-left: 0.5rem;
+        }
+
+        .inventory-line {
+            margin-bottom: 0.2rem;
+            color: #00ff00;
+        }
+
+        /* Tabs */
+        .nav-pills .nav-link {
+            background: var(--accent-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            margin-right: 0.5rem;
+        }
+
+        .nav-pills .nav-link.active {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+            color: white;
+        }
+
+        /* Stats badges */
+        .stat-badge {
+            background: var(--accent-bg);
+            border: 1px solid var(--border-color);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .gold-amount {
+            color: #ffd700;
+            font-weight: 600;
+        }
+
+        /* Class color coding */
+        .class-mage { color: #00FFFF; } /* Cyan */
+        .class-cleric { color: #FFFFFF; } /* White */
+        .class-thief { color: #FFFF00; } /* Yellow */
+        .class-warrior { color: #8B4513; } /* Brown */
+        .class-vampire { color: #FF0000; } /* Bright Red */
+        .class-druid { color: #00FF00; } /* Green */
+        .class-ranger { color: #228B22; } /* Forest Green */
+        .class-augurer { color: #808080; } /* Gray */
+        .class-paladin { color: #FFB6C1; } /* Pink */
+        .class-nephandi { color: #9400D3; } /* Purple */
+        .class-fathomer { color: #4682B4; } /* Ocean Blue */
+        .class-bladesinger { color: #CD5C5C; } /* Dull Red */
+        .class-barbarian { color: #FFA500; } /* Orange */
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--accent-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+
+        /* Loading state */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            border: 2px solid var(--border-color);
+            border-top: 2px solid var(--accent-color);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Enhanced dashboard styling */
+        .enhanced-navbar {
+            background: linear-gradient(to bottom, var(--secondary-bg), rgba(20, 25, 37, 0.95)) !important;
+            border-bottom: 2px solid var(--accent-color);
+            box-shadow: 0 4px 20px rgba(124, 58, 237, 0.15);
+            backdrop-filter: blur(10px);
+            margin-bottom: 0;
+        }
+        
+        .enhanced-sidebar-header {
+            background: linear-gradient(135deg, var(--accent-bg), var(--border-color));
+            border-bottom: 2px solid var(--accent-color);
+        }
+        
+        .character-card {
+            background: linear-gradient(135deg, var(--accent-bg), var(--secondary-bg));
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .character-card::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            right: -1px;
+            bottom: -1px;
+            background: linear-gradient(45deg, var(--accent-color), var(--magic-glow));
+            border-radius: 10px;
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.3s ease;
+        }
+        
+        .character-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(124, 58, 237, 0.2);
+        }
+        
+        .character-card:hover::before {
+            opacity: 0.3;
+        }
+        
+        .character-card.active {
+            border-color: var(--accent-color);
+            background: linear-gradient(135deg, var(--secondary-bg), var(--accent-bg));
+            box-shadow: 0 4px 20px rgba(124, 58, 237, 0.3);
+        }
+        
+        .character-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            font-family: 'Cinzel', serif;
+        }
+        
+        .detail-card {
+            background: linear-gradient(135deg, var(--secondary-bg), var(--accent-bg));
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .detail-card-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 2px solid var(--accent-color);
+            background: linear-gradient(135deg, var(--accent-bg), var(--border-color));
+            border-radius: 12px 12px 0 0;
+            color: var(--text-primary);
+        }
+        
+        .detail-card-header h4 {
+            font-family: 'Cinzel', serif;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .enhanced-back-btn {
+            background: linear-gradient(45deg, var(--accent-bg), var(--border-color));
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-weight: 600;
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        
+        .enhanced-back-btn:hover {
+            background: linear-gradient(45deg, var(--border-color), var(--accent-color));
+            border-color: var(--accent-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+        }
+        
+        /* Enhanced scrollbar */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--primary-bg);
+            border-radius: 6px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, var(--accent-color), var(--magic-glow));
+            border-radius: 6px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--magic-glow);
+        }
+        
+        /* Enhanced MUD terminal */
+        .mud-terminal {
+            background-color: #000;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 2px solid var(--accent-color);
+            box-shadow: inset 0 0 20px rgba(124, 58, 237, 0.1);
+            max-height: 600px;
+            overflow-y: auto;
+            font-size: 0.875rem;
+            line-height: 1.4;
+        }
+        
+        .mud-header {
+            color: var(--magic-glow);
+            font-weight: bold;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+        
+        .equipment-slot-mud {
+            color: var(--gold-color);
+            min-width: 200px;
+            display: inline-block;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg enhanced-navbar">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/" style="font-family: 'Cinzel', serif; font-weight: 600; font-size: 1.5rem; letter-spacing: 0.05em; color: var(--text-primary) !important;">
+                <i class="fas fa-scroll me-2" style="color: var(--magic-glow);"></i>
+                <span style="background: linear-gradient(45deg, var(--accent-color), var(--magic-glow)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Malfian's Vault</span>
+                <small style="display: block; font-size: 0.65rem; font-family: 'Crimson Text', serif; letter-spacing: 0.1em; color: var(--text-secondary); margin-top: -0.2rem;">Realms of Despair Manager</small>
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/" style="color: var(--text-secondary) !important;">
+                    <i class="fas fa-users me-1"></i> Heroes
+                </a>
+                <a class="nav-link active" href="/dashboard" style="color: var(--accent-color) !important;">
+                    <i class="fas fa-user-circle me-1"></i> Character
+                </a>
+                <a class="nav-link" href="/consolidated-inventory" style="color: var(--text-secondary) !important;">
+                    <i class="fas fa-treasure-chest me-1"></i> Treasury
+                </a>
+                <a class="nav-link" href="/containers" style="color: var(--text-secondary) !important;">
+                    <i class="fas fa-cogs me-1"></i> Containers
+                </a>
+                <a class="nav-link" href="/reload" onclick="reloadData(event)" style="color: var(--text-secondary) !important;">
+                    <i class="fas fa-sync-alt me-1"></i> Refresh
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header enhanced-sidebar-header">
+                <h3 class="mb-0" style="font-family: 'Cinzel', serif; font-weight: 600; color: var(--text-primary);">
+                    <i class="fas fa-users me-2" style="color: var(--accent-color);"></i>
+                    Heroes
+                </h3>
+                <p class="mb-0 mt-1" style="color: var(--text-secondary); font-style: italic;">Select a character to view their realm</p>
+            </div>
+            
+            <div class="character-list" id="characterList">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Loading characters...
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="content-header">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h1 class="mb-0" id="mainTitle" style="font-family: 'Cinzel', serif; font-weight: 700; color: var(--text-primary);">
+                            <i class="fas fa-scroll me-2" style="color: var(--magic-glow);"></i>
+                            Character Archive
+                        </h1>
+                        <p class="mb-0 mt-1" id="mainSubtitle" style="color: var(--text-secondary); font-style: italic;">Select a character from the sidebar to explore their inventory and equipment</p>
+                    </div>
+                    <a href="/" class="btn enhanced-back-btn" id="backButton" style="display: none;">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Heroes
+                    </a>
+                </div>
+            </div>
+            
+            <div class="content-body">
+                <div id="welcomeMessage">
+                    <div class="text-center" style="margin-top: 4rem;">
+                        <i class="fas fa-scroll fa-4x mb-3" style="color: var(--text-secondary); opacity: 0.5;"></i>
+                        <h3 style="color: var(--text-primary); font-family: 'Cinzel', serif; font-weight: 600;">Welcome to Malfian's Vault</h3>
+                        <p style="color: var(--text-secondary);">Select a hero from the sidebar to explore their legend</p>
+                    </div>
+                </div>
+                
+                <!-- Character Details Template -->
+                <div id="characterDetails" class="character-details">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let characters = [];
+        let characterData = {};
+        let currentCharacter = null;
+
+        // Load character list
+        async function loadCharacters() {
+            try {
+                const response = await fetch('/api/characters');
+                characters = await response.json();
+                renderCharacterList();
+                loadCharacterStats();
+            } catch (error) {
+                console.error('Error loading characters:', error);
+                document.getElementById('characterList').innerHTML = 
+                    '<div class="text-center text-danger"><i class="fas fa-exclamation-triangle"></i> Error loading characters</div>';
+            }
+        }
+
+        // Load character stats
+        async function loadCharacterStats() {
+            try {
+                const response = await fetch('/api/character-stats');
+                const stats = await response.json();
+                
+                // Merge stats with character list (case-insensitive)
+                characters.forEach(char => {
+                    const stat = stats.find(s => s.character.toLowerCase() === char.toLowerCase());
+                    if (stat) {
+                        characterData[char] = stat;
+                    } else {
+                        characterData[char] = {
+                            character: char,
+                            class: 'Unknown',
+                            race: 'Unknown',
+                            gender: 'Unknown',
+                            alignment: 'Unknown',
+                            gold: '0',
+                            level: 'Unknown'
+                        };
+                    }
+                });
+                
+                renderCharacterList();
+            } catch (error) {
+                console.error('Error loading character stats:', error);
+            }
+        }
+
+        // Render character list
+        function renderCharacterList() {
+            const container = document.getElementById('characterList');
+            
+            if (characters.length === 0) {
+                container.innerHTML = '<div class="text-center text-muted">No characters found</div>';
+                return;
+            }
+
+            container.innerHTML = characters.map(char => {
+                const stats = characterData[char] || {};
+                return `
+                    <div class="character-card" onclick="selectCharacter('${char}')">
+                        <div class="character-name">${char.charAt(0).toUpperCase() + char.slice(1)}</div>
+                        <div class="character-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Class:</span> ${stats.class || 'Unknown'}
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Race:</span> ${stats.race || 'Unknown'}
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Level:</span> ${stats.level || 'Unknown'}
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Gold:</span> <span class="gold-amount">${formatNumber(stats.gold || '0')}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Gender:</span> ${stats.gender || 'Unknown'}
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Alignment:</span> ${stats.alignment || 'Unknown'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Select character
+        async function selectCharacter(characterName) {
+            // Update active state
+            document.querySelectorAll('.character-card').forEach(card => {
+                card.classList.remove('active');
+                if (card.onclick && card.onclick.toString().includes(characterName)) {
+                    card.classList.add('active');
+                }
+            });
+
+            currentCharacter = characterName;
+            
+            // Update header
+            document.getElementById('mainTitle').innerHTML = `
+                <i class="fas fa-user-ninja me-2"></i>
+                ${characterName.charAt(0).toUpperCase() + characterName.slice(1)}
+            `;
+            document.getElementById('mainSubtitle').textContent = 'Loading character data...';
+
+            // Hide welcome message and show back button
+            document.getElementById('welcomeMessage').style.display = 'none';
+            document.getElementById('backButton').style.display = 'inline-block';
+            
+            // Show loading in details
+            const detailsContainer = document.getElementById('characterDetails');
+            detailsContainer.innerHTML = '<div class="loading"><div class="spinner"></div>Loading character details...</div>';
+            detailsContainer.classList.add('active');
+
+            try {
+                const response = await fetch(`/api/character/${characterName}`);
+                const data = await response.json();
+                renderCharacterDetails(data);
+            } catch (error) {
+                console.error('Error loading character details:', error);
+                detailsContainer.innerHTML = '<div class="text-center text-danger">Error loading character details</div>';
+            }
+        }
+
+        // Render character details
+        function renderCharacterDetails(data) {
+            // Get character stats from our loaded data
+            const stats = characterData[data.character] || {};
+            
+            document.getElementById('mainSubtitle').textContent = `${stats.class || 'Unknown'} • ${stats.race || 'Unknown'} • Level ${stats.level || 'Unknown'}`;
+
+            const container = document.getElementById('characterDetails');
+            container.innerHTML = `
+                <!-- Character Stats -->
+                <div class="detail-card">
+                    <div class="detail-card-header">
+                        <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Character Statistics</h5>
+                    </div>
+                    <div class="detail-card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="stat-badge w-100 text-center">
+                                    <div class="text-muted small">Class</div>
+                                    <div class="h6 mb-0">${stats.class || 'Unknown'}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-badge w-100 text-center">
+                                    <div class="text-muted small">Race</div>
+                                    <div class="h6 mb-0">${stats.race || 'Unknown'}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-badge w-100 text-center">
+                                    <div class="text-muted small">Level</div>
+                                    <div class="h6 mb-0">${stats.level || 'Unknown'}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-badge w-100 text-center">
+                                    <div class="text-muted small">Gold</div>
+                                    <div class="h6 mb-0 gold-amount">${formatNumber(stats.gold || '0')}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <div class="stat-badge w-100 text-center">
+                                    <div class="text-muted small">Gender</div>
+                                    <div class="h6 mb-0">${stats.gender || 'Unknown'}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stat-badge w-100 text-center">
+                                    <div class="text-muted small">Alignment</div>
+                                    <div class="h6 mb-0">${stats.alignment || 'Unknown'}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stat-badge w-100 text-center">
+                                    <div class="text-muted small">Total Items</div>
+                                    <div class="h6 mb-0">${data.total_items || 0}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs -->
+                <ul class="nav nav-pills mb-3" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#equipment-tab">
+                            <i class="fas fa-shield-alt me-1"></i>Equipment
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#inventory-tab">
+                            <i class="fas fa-backpack me-1"></i>Inventory
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#containers-tab">
+                            <i class="fas fa-boxes me-1"></i>Containers
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Tab Content -->
+                <div class="tab-content">
+                    <!-- Equipment Tab -->
+                    <div class="tab-pane fade show active" id="equipment-tab">
+                        <div class="detail-card">
+                            <div class="detail-card-header">
+                                <h5 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Equipment (${data.equipment?.length || 0} items)</h5>
+                            </div>
+                            <div class="detail-card-body">
+                                ${renderEquipment(data.equipment)}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Inventory Tab -->
+                    <div class="tab-pane fade" id="inventory-tab">
+                        <div class="detail-card">
+                            <div class="detail-card-header">
+                                <h5 class="mb-0"><i class="fas fa-backpack me-2"></i>Inventory (${data.inventory?.length || 0} items)</h5>
+                            </div>
+                            <div class="detail-card-body">
+                                ${renderInventory(data.inventory)}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Containers Tab -->
+                    <div class="tab-pane fade" id="containers-tab">
+                        ${renderContainersConsolidated(data.containers)}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Render equipment only (no empty slots)
+        function renderEquipmentOnly(equipment) {
+            if (!equipment || equipment.length === 0) {
+                return '<div class="text-center text-muted py-4">No equipment found</div>';
+            }
+
+            return `
+                <div class="mud-terminal">
+                    <div class="mud-header">You are using:</div>
+                    ${equipment.map(item => `
+                        <div class="mud-line">
+                            <span class="equipment-slot-mud">&lt;${item.location.replace('equipped:', '')}&gt;</span>
+                            <span class="item-text">${item.raw_line}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // Render equipment
+        function renderEquipment(equipment) {
+            // Define all equipment slots in order
+            const allSlots = [
+                'used as light', 'worn on finger', 'worn around neck', 'worn on body', 
+                'worn on head', 'worn on legs', 'worn on feet', 'worn on hands', 
+                'worn on arms', 'worn about body', 'worn about waist', 'worn around wrist',
+                'wielded', 'dual wielded', 'worn as shield', 'held', 'worn on ears', 
+                'worn on eyes', 'worn on back', 'worn over face', 'worn around ankle'
+            ];
+            
+            // Create a map of equipped items by slot
+            const equippedItems = {};
+            if (equipment) {
+                equipment.forEach(item => {
+                    const slot = item.location.replace('equipped:', '');
+                    if (!equippedItems[slot]) {
+                        equippedItems[slot] = [];
+                    }
+                    equippedItems[slot].push(item);
+                });
+            }
+            
+            // Generate display with all slots, showing [nothing] for empty ones
+            const equipmentLines = allSlots.map(slot => {
+                if (equippedItems[slot] && equippedItems[slot].length > 0) {
+                    // Show all items in this slot (some slots can have multiple items)
+                    return equippedItems[slot].map(item => `
+                        <div class="mud-line">
+                            <span class="equipment-slot-mud">&lt;${slot}&gt;</span>
+                            <span class="item-text">${item.raw_line}</span>
+                        </div>
+                    `).join('');
+                } else {
+                    // Show empty slot
+                    return `
+                        <div class="mud-line">
+                            <span class="equipment-slot-mud">&lt;${slot}&gt;</span>
+                            <span class="item-text" style="color: #666; font-style: italic;">[nothing]</span>
+                        </div>
+                    `;
+                }
+            }).join('');
+
+            return `
+                <div class="mud-terminal">
+                    <div class="mud-header">You are using:</div>
+                    ${equipmentLines}
+                </div>
+            `;
+        }
+
+        // Render inventory
+        function renderInventory(inventory) {
+            if (!inventory || inventory.length === 0) {
+                return '<div class="text-center text-muted py-4">No inventory items found</div>';
+            }
+
+            return `
+                <div class="mud-terminal">
+                    ${inventory.map(item => {
+                        if (item.raw_line.includes('You are carrying') && item.raw_line.includes('items')) {
+                            return `<div class="mud-header">${item.raw_line}</div>`;
+                        } else {
+                            return `<div class="inventory-line">${item.raw_line}</div>`;
+                        }
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        // Render containers consolidated 
+        function renderContainersConsolidated(containers) {
+            if (!containers) {
+                return '<div class="text-center text-muted py-4">No containers found</div>';
+            }
+
+            // Consolidate all container items
+            const allContainerItems = [];
+            Object.entries(containers).forEach(([containerName, items]) => {
+                items.forEach(item => {
+                    allContainerItems.push({
+                        ...item,
+                        container: containerName
+                    });
+                });
+            });
+
+            if (allContainerItems.length === 0) {
+                return '<div class="text-center text-muted py-4">No container items found</div>';
+            }
+
+            const totalItems = allContainerItems.length;
+
+            return `
+                <div class="detail-card">
+                    <div class="detail-card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-boxes me-2"></i>
+                            Containers (${totalItems} items)
+                        </h5>
+                    </div>
+                    <div class="detail-card-body">
+                        <div class="mud-container">
+                            <div class="container-header">Container contents:</div>
+                            ${allContainerItems.map(item => `
+                                <div class="container-line">
+                                    <span style="color: #ffff00;">[${item.container.replace('my.', '')}]</span> ${item.raw_line}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Render containers
+        function renderContainers(containers) {
+            if (!containers) {
+                return '<div class="text-center text-muted py-4">No containers found</div>';
+            }
+
+            return Object.entries(containers).map(([containerName, items]) => `
+                <div class="detail-card">
+                    <div class="detail-card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-box me-2"></i>
+                            ${containerName.charAt(0).toUpperCase() + containerName.slice(1)} (${items.length} items)
+                        </h5>
+                    </div>
+                    <div class="detail-card-body">
+                        ${items.length > 0 ? `
+                            <div class="mud-container">
+                                <div class="container-header">${containerName} contains:</div>
+                                ${items.map(item => `
+                                    <div class="container-line">${item.raw_line}</div>
+                                `).join('')}
+                            </div>
+                        ` : '<div class="text-center text-muted py-3">This container is empty</div>'}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Utility functions
+        function formatNumber(num) {
+            return parseInt(num || 0).toLocaleString();
+        }
+
+        async function reloadData(event) {
+            event.preventDefault();
+            try {
+                const response = await fetch('/reload');
+                const result = await response.json();
+                if (result.status === 'success') {
+                    location.reload();
+                }
+            } catch (error) {
+                console.error('Error reloading data:', error);
+            }
+        }
+
+        // Get URL parameter
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            const charParam = getUrlParameter('char');
+            
+            if (charParam) {
+                // Hide sidebar when viewing specific character
+                document.querySelector('.sidebar').style.display = 'none';
+                document.querySelector('.main-content').style.marginLeft = '0';
+                
+                // Load character data directly
+                loadCharacterDirectly(charParam);
+            } else {
+                // Normal dashboard with sidebar
+                loadCharacters();
+            }
+        });
+
+        // Load character directly without sidebar
+        async function loadCharacterDirectly(characterName) {
+            try {
+                // Check if this is a house character
+                const isHouse = characterName.endsWith('_House');
+                
+                if (isHouse) {
+                    // Load house data
+                    const ownerName = characterName.replace('_House', '');
+                    
+                    // Update header for house
+                    document.getElementById('mainTitle').innerHTML = `
+                        <i class="fas fa-home me-2"></i>
+                        ${ownerName}'s House
+                    `;
+                    document.getElementById('mainSubtitle').textContent = 'House Storage • Property • House';
+                    
+                    // Hide welcome message and show back button
+                    document.getElementById('welcomeMessage').style.display = 'none';
+                    document.getElementById('backButton').style.display = 'inline-block';
+                    
+                    // Load house details
+                    const response = await fetch(`/api/house/${ownerName}`);
+                    const data = await response.json();
+                    
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    
+                    // Store house data for rendering
+                    characterData[characterName] = {
+                        character: characterName,
+                        class: 'House Storage',
+                        race: 'Property',
+                        gender: 'Neutral',
+                        alignment: 'Neutral',
+                        is_house: true,
+                        owner: ownerName
+                    };
+                    
+                    renderCharacterDetails(data);
+                    document.getElementById('characterDetails').classList.add('active');
+                    
+                } else {
+                    // Regular character loading
+                    // Load character stats for header info
+                    const statsResponse = await fetch('/api/character-stats');
+                    const allStats = await statsResponse.json();
+                    const charStats = allStats.find(s => s.character.toLowerCase() === characterName.toLowerCase()) || {};
+                    
+                    // Update header immediately
+                    document.getElementById('mainTitle').innerHTML = `
+                        <i class="fas fa-user-ninja me-2"></i>
+                        ${characterName.charAt(0).toUpperCase() + characterName.slice(1)}
+                    `;
+                    document.getElementById('mainSubtitle').textContent = `${charStats.class || 'Unknown'} • ${charStats.race || 'Unknown'} • Level ${charStats.level || 'Unknown'}`;
+                    
+                    // Hide welcome message and show back button
+                    document.getElementById('welcomeMessage').style.display = 'none';
+                    document.getElementById('backButton').style.display = 'inline-block';
+                    
+                    // Load character details
+                    const response = await fetch(`/api/character/${characterName}`);
+                    const data = await response.json();
+                    
+                    // Store character data for rendering
+                    characterData[characterName] = charStats;
+                    
+                    renderCharacterDetails(data);
+                    document.getElementById('characterDetails').classList.add('active');
+                }
+                
+            } catch (error) {
+                console.error('Error loading character:', error);
+                document.getElementById('characterDetails').innerHTML = '<div class="text-center text-danger">Error loading character details</div>';
+                document.getElementById('characterDetails').classList.add('active');
+            }
+        }
+    </script>
+</body>
+</html>

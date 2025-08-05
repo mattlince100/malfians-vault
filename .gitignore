@@ -1,0 +1,106 @@
+# MUD Inventory Manager .gitignore
+
+# Sensitive configuration files - NEVER commit these!
+characters.csv
+characters_*.csv
+credentials.json
+.env
+
+# Data files and backups
+*.csv
+!*.csv.example
+character_stats_*.csv
+inventory_backup_*.csv
+
+# Log files
+logs/
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+
+# Archive directory contents (keep the directory)
+archive/*
+!archive/.gitkeep
+
+# Test files
+test_*.csv
+*_test.csv
+debug_*.py
+
+# Container mappings backup (keep main file)
+container_mappings_backup_*.json
+
+# Google Sheets API credentials
+token.json
+service_account.json
+
+# Local configuration overrides
+config_local.py
+local_settings.py
+
+# Development and testing files
+scratch/
+dev/
+testing/
+experiments/
+
+# Release packages
+malfians-vault-v*.tar.gz
+malfians-vault-v*.zip
+malfians-vault-v*-release/
+cleanup_backup/

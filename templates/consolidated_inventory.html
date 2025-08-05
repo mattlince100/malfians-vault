@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Treasury - Malfian's Vault</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #0a0e1a;
+            --secondary-bg: #141925;
+            --accent-bg: #1e2436;
+            --border-color: #2a3142;
+            --text-primary: #e8eaf0;
+            --text-secondary: #9ca3b8;
+            --accent-color: #7c3aed;
+            --accent-hover: #6d28d9;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --gold-color: #fbbf24;
+            --magic-glow: #c084fc;
+            --legendary-color: #f97316;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:wght@400;600&display=swap');
+        
+        body {
+            background: var(--primary-bg);
+            background-image: 
+                radial-gradient(ellipse at top left, rgba(124, 58, 237, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(192, 132, 252, 0.05) 0%, transparent 50%);
+            color: var(--text-primary);
+            font-family: 'Crimson Text', serif;
+            padding: 0;
+            margin: 0;
+            min-height: 100vh;
+        }
+        
+        .main-wrapper {
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: linear-gradient(to bottom, var(--secondary-bg), rgba(20, 25, 37, 0.95)) !important;
+            border-bottom: 2px solid var(--accent-color);
+            box-shadow: 0 4px 20px rgba(124, 58, 237, 0.15);
+            padding: 1.2rem 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+            color: var(--text-primary) !important;
+        }
+
+        .nav-link {
+            color: var(--text-secondary) !important;
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary) !important;
+        }
+
+        .nav-link.active {
+            color: var(--accent-color) !important;
+        }
+
+        .filter-section {
+            background: linear-gradient(135deg, var(--secondary-bg), var(--accent-bg));
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .inventory-table {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table th {
+            background: var(--accent-bg);
+            border-color: var(--border-color);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+        }
+
+        .table td {
+            border-color: var(--border-color);
+            vertical-align: middle;
+            font-size: 0.875rem;
+        }
+
+        .item-name {
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+        }
+
+        .magical-item {
+            color: #ff00ff;
+        }
+
+        .glowing-item {
+            color: #00ffff;
+        }
+
+        .humming-item {
+            color: #ffff00;
+        }
+
+        .location-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            background: var(--accent-bg);
+            border: 1px solid var(--border-color);
+        }
+
+        .character-pill {
+            display: inline-block;
+            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
+            margin: 0.1rem;
+            border-radius: 12px;
+            background: var(--accent-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .btn-filter {
+            background: var(--accent-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .btn-filter:hover {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+            color: white;
+        }
+
+        .btn-filter.active {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+            color: white;
+        }
+
+        /* DataTables dark theme customization */
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter,
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_paginate {
+            color: var(--text-secondary);
+        }
+
+        .dataTables_wrapper .dataTables_filter input {
+            background: var(--accent-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.375rem 0.75rem;
+            border-radius: 4px;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            background: var(--accent-color) !important;
+            border-color: var(--accent-color) !important;
+            color: white !important;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background: var(--accent-bg) !important;
+            border-color: var(--border-color) !important;
+            color: var(--text-primary) !important;
+        }
+
+        .summary-stats {
+            background: linear-gradient(135deg, var(--secondary-bg), var(--accent-bg));
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-item {
+            display: inline-block;
+            margin-right: 2rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .stat-value {
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        /* Expandable character list styles */
+        .character-list-container {
+            display: inline-block;
+        }
+
+        .character-summary {
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-right: 0.5rem;
+        }
+
+        .expand-btn {
+            padding: 0.1rem 0.4rem;
+            font-size: 0.75rem;
+            text-decoration: none;
+            color: var(--accent-color);
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
+
+        .expand-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .character-list-expanded {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: var(--accent-bg);
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .character-list-expanded .character-pill {
+            margin-bottom: 0.3rem;
+        }
+        
+        /* Item flags toggle styling */
+        .form-check-input:checked {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+        
+        .form-check-input:focus {
+            box-shadow: 0 0 0 0.25rem rgba(124, 58, 237, 0.25);
+        }
+        
+        .form-check-input {
+            background-color: var(--accent-bg);
+            border-color: var(--border-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="main-wrapper">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#" style="font-family: 'Cinzel', serif; font-weight: 600; font-size: 1.5rem; letter-spacing: 0.05em;">
+                <i class="fas fa-scroll me-2" style="color: var(--magic-glow);"></i>
+                <span style="background: linear-gradient(45deg, var(--accent-color), var(--magic-glow)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Malfian's Vault</span>
+                <small style="display: block; font-size: 0.65rem; font-family: 'Crimson Text', serif; letter-spacing: 0.1em; color: var(--text-secondary); margin-top: -0.2rem;">Realms of Despair Manager</small>
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/">
+                    <i class="fas fa-users me-1"></i> Heroes
+                </a>
+                <a class="nav-link" href="/dashboard">
+                    <i class="fas fa-user-circle me-1"></i> Character
+                </a>
+                <a class="nav-link active" href="/consolidated-inventory">
+                    <i class="fas fa-treasure-chest me-1"></i> Treasury
+                </a>
+                <a class="nav-link" href="/containers">
+                    <i class="fas fa-cogs me-1"></i> Containers
+                </a>
+                <a class="nav-link" href="/reload" onclick="reloadData(event)">
+                    <i class="fas fa-sync-alt me-1"></i> Refresh
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Summary Stats -->
+    <div class="summary-stats">
+        <div class="stat-item">
+            <div class="stat-label">Total Items</div>
+            <div class="stat-value" id="totalItems">-</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">Unique Items</div>
+            <div class="stat-value" id="uniqueItems">-</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">Total Quantity</div>
+            <div class="stat-value" id="totalQuantity">-</div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <div class="row">
+            <div class="col-md-8">
+                <h5 class="mb-3" style="font-family: 'Cinzel', serif;">Filter by Location</h5>
+                <div id="filterButtons">
+                    <button class="btn btn-filter active" data-filter="all">
+                        <i class="fas fa-globe me-1"></i> All Items
+                    </button>
+                    <button class="btn btn-filter" data-filter="inventory">
+                        <i class="fas fa-backpack me-1"></i> Inventory
+                    </button>
+                    <button class="btn btn-filter" data-filter="equipped">
+                        <i class="fas fa-shield-alt me-1"></i> Equipment
+                    </button>
+                    <button class="btn btn-filter" data-filter="containers">
+                        <i class="fas fa-box me-1"></i> Containers
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                <h5 class="mb-3" style="font-family: 'Cinzel', serif;">Display Options</h5>
+                <select class="form-select form-select-sm mb-2" id="viewMode" style="background: var(--accent-bg); border: 1px solid var(--border-color); color: var(--text-primary);" onchange="changeViewMode()">
+                    <option value="detailed">Detailed View</option>
+                    <option value="summary">Summary View</option>
+                    <option value="character" disabled>Character View (Coming Soon)</option>
+                    <option value="rarity" disabled>Rarity View (Coming Soon)</option>
+                </select>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="hideItemFlags" onchange="toggleItemFlags()">
+                    <label class="form-check-label" for="hideItemFlags" style="color: var(--text-secondary); font-size: 0.875rem;">
+                        Hide Item Flags
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inventory Table -->
+    <div class="inventory-table">
+        <table id="inventoryTable" class="table table-dark table-hover">
+            <thead>
+                <tr>
+                    <th>Item Name</th>
+                    <th>Total Quantity</th>
+                    <th>Location Type</th>
+                    <th>Owned By</th>
+                </tr>
+            </thead>
+            <tbody id="inventoryTableBody">
+                <!-- Data will be populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script>
+        let allItems = [];
+        let consolidatedItems = {};
+        let dataTable = null;
+        let currentFilter = 'all';
+        let currentViewMode = 'detailed';
+        let isInitialLoad = true;
+
+        // Load data on page load
+        async function loadData() {
+            try {
+                const response = await fetch('/api/consolidated-inventory');
+                allItems = await response.json();
+                
+                // Consolidate items
+                consolidateItems();
+                
+                // Update stats
+                updateStats();
+                
+                // Populate table
+                populateTable();
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
+
+        function consolidateItems() {
+            consolidatedItems = {};
+            
+            allItems.forEach(item => {
+                const key = item.item_name;
+                
+                if (!consolidatedItems[key]) {
+                    consolidatedItems[key] = {
+                        item_name: item.item_name,
+                        raw_line: item.raw_line,
+                        total_quantity: 0,
+                        locations: new Set(),
+                        characters: new Set(),
+                        location_details: []
+                    };
+                }
+                
+                consolidatedItems[key].total_quantity += parseInt(item.quantity || 1);
+                consolidatedItems[key].locations.add(item.location);
+                consolidatedItems[key].characters.add(item.character);
+                consolidatedItems[key].location_details.push({
+                    location: item.location,
+                    character: item.character,
+                    quantity: item.quantity
+                });
+            });
+        }
+
+        function updateStats() {
+            const totalItems = allItems.length;
+            const uniqueItems = Object.keys(consolidatedItems).length;
+            const totalQuantity = allItems.reduce((sum, item) => sum + parseInt(item.quantity || 1), 0);
+            
+            document.getElementById('totalItems').textContent = totalItems.toLocaleString();
+            document.getElementById('uniqueItems').textContent = uniqueItems.toLocaleString();
+            document.getElementById('totalQuantity').textContent = totalQuantity.toLocaleString();
+        }
+
+        function populateTable() {
+            // Build filtered data array
+            const filteredData = [];
+            
+            Object.values(consolidatedItems).forEach(item => {
+                // Format character ownership with counts (filtered by current location type)
+                const characterCounts = {};
+                let filteredTotal = 0;
+                
+                item.location_details.forEach(detail => {
+                    let includeInCount = true;
+                    
+                    // Only count items that match the current filter
+                    if (currentFilter !== 'all') {
+                        if (currentFilter === 'inventory' && detail.location !== 'inventory') {
+                            includeInCount = false;
+                        } else if (currentFilter === 'equipped' && !detail.location.startsWith('equipped:')) {
+                            includeInCount = false;
+                        } else if (currentFilter === 'containers' && (!detail.location.startsWith('my.') && !detail.location.startsWith('house:')) || detail.location === 'inventory' || detail.location.startsWith('equipped:')) {
+                            includeInCount = false;
+                        }
+                    }
+                    
+                    if (includeInCount) {
+                        if (!characterCounts[detail.character]) {
+                            characterCounts[detail.character] = 0;
+                        }
+                        const qty = parseInt(detail.quantity || 1);
+                        characterCounts[detail.character] += qty;
+                        filteredTotal += qty;
+                    }
+                });
+                
+                // Apply filter - only show items that have the filtered location type
+                if (currentFilter !== 'all' && filteredTotal === 0) {
+                    return; // Skip items that don't have any quantities in the filtered location
+                }
+                
+                // Format character display based on view mode
+                const characterEntries = Object.entries(characterCounts);
+                const totalCharacters = characterEntries.length;
+                let characterDisplay = '';
+                
+                if (currentViewMode === 'summary') {
+                    // Summary view: just show count
+                    characterDisplay = `<span class="character-summary">${totalCharacters} character${totalCharacters !== 1 ? 's' : ''}</span>`;
+                } else {
+                    // Detailed view: expandable lists
+                    if (totalCharacters > 5) {
+                        // Show compressed format with expand button
+                        const itemId = item.item_name.replace(/[^a-zA-Z0-9]/g, '_') + '_' + Math.random().toString(36).substr(2, 9);
+                        
+                        characterDisplay = `
+                            <div class="character-list-container">
+                                <span class="character-summary">Held by ${totalCharacters} characters</span>
+                                <button class="btn btn-sm btn-link expand-btn" onclick="toggleCharacterList('${itemId}')">
+                                    <i class="fas fa-chevron-down"></i>
+                                </button>
+                                <div id="${itemId}" class="character-list-expanded" style="display: none;">
+                                    ${characterEntries.map(([char, count]) => 
+                                        `<span class="character-pill">${char.charAt(0).toUpperCase() + char.slice(1)} (${count})</span>`
+                                    ).join('')}
+                                </div>
+                            </div>
+                        `;
+                    } else if (totalCharacters > 3) {
+                        // Show first 3 with expand button
+                        const itemId = item.item_name.replace(/[^a-zA-Z0-9]/g, '_') + '_' + Math.random().toString(36).substr(2, 9);
+                        const firstThree = characterEntries.slice(0, 3);
+                        const remaining = characterEntries.slice(3);
+                        
+                        characterDisplay = `
+                            <div class="character-list-container">
+                                ${firstThree.map(([char, count]) => 
+                                    `<span class="character-pill">${char.charAt(0).toUpperCase() + char.slice(1)} (${count})</span>`
+                                ).join('')}
+                                <button class="btn btn-sm btn-link expand-btn" onclick="toggleCharacterList('${itemId}')">
+                                    +${remaining.length} more
+                                </button>
+                                <div id="${itemId}" class="character-list-expanded" style="display: none;">
+                                    ${remaining.map(([char, count]) => 
+                                        `<span class="character-pill">${char.charAt(0).toUpperCase() + char.slice(1)} (${count})</span>`
+                                    ).join('')}
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        // Show all characters (3 or fewer)
+                        characterDisplay = characterEntries.map(([char, count]) => 
+                            `<span class="character-pill">${char.charAt(0).toUpperCase() + char.slice(1)} (${count})</span>`
+                        ).join('');
+                    }
+                }
+                
+                // Style item name based on properties
+                let itemClass = 'item-name';
+                if (item.raw_line.includes('(Magical)')) itemClass += ' magical-item';
+                if (item.raw_line.includes('(Glowing)')) itemClass += ' glowing-item';
+                if (item.raw_line.includes('(Humming)')) itemClass += ' humming-item';
+                
+                // Determine primary location type for display
+                const locationTypes = new Set();
+                if (currentFilter === 'all') {
+                    // Show all location types for this item
+                    Array.from(item.locations).forEach(loc => {
+                        if (loc.startsWith('equipped:')) {
+                            locationTypes.add('Equipment');
+                        } else if ((loc.startsWith('my.') && loc !== 'inventory' && !loc.startsWith('equipped:')) || loc.startsWith('house:')) {
+                            locationTypes.add('Containers');
+                        } else if (loc === 'inventory') {
+                            locationTypes.add('Inventory');
+                        } else {
+                            locationTypes.add('Other');
+                        }
+                    });
+                } else {
+                    // Show only the filtered location type
+                    if (currentFilter === 'inventory') {
+                        locationTypes.add('Inventory');
+                    } else if (currentFilter === 'equipped') {
+                        locationTypes.add('Equipment');
+                    } else if (currentFilter === 'containers') {
+                        locationTypes.add('Containers');
+                    }
+                }
+                
+                const locationDisplay = Array.from(locationTypes).join(', ');
+                
+                // Add to filtered data array
+                filteredData.push([
+                    `<span class="${itemClass}">${cleanItemName(item.item_name)}</span>`,
+                    currentFilter === 'all' ? item.total_quantity : filteredTotal,
+                    `<span class="location-badge">${locationDisplay}</span>`,
+                    characterDisplay
+                ]);
+            });
+            
+            // Destroy existing table and recreate
+            if (dataTable) {
+                dataTable.destroy();
+                $('#inventoryTable tbody').empty();
+            }
+            
+            // Update table headers based on view mode
+            updateTableHeaders();
+            
+            // Initialize DataTable with filtered data
+            dataTable = $('#inventoryTable').DataTable({
+                data: filteredData,
+                pageLength: 100,
+                lengthMenu: [25, 50, 100, 250, 500, -1],
+                lengthChange: true,
+                order: [[1, 'desc']], // Sort by quantity
+                language: {
+                    search: "Search items:",
+                    lengthMenu: "Show _MENU_ items per page",
+                    info: "Showing _START_ to _END_ of _TOTAL_ items",
+                    infoEmpty: "No items found",
+                    infoFiltered: "(filtered from _MAX_ total items)",
+                    paginate: {
+                        first: "First",
+                        last: "Last",
+                        next: "Next",
+                        previous: "Previous"
+                    }
+                }
+            });
+        }
+
+        // Filter handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterButtons = document.querySelectorAll('.btn-filter');
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Update active state
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Apply filter
+                    currentFilter = this.getAttribute('data-filter');
+                    populateTable();
+                });
+            });
+            
+            // Load data
+            loadData();
+            
+            // Load item flags preference
+            loadItemFlagsPreference();
+        });
+
+        async function reloadData(event) {
+            event.preventDefault();
+            try {
+                const response = await fetch('/reload');
+                const result = await response.json();
+                if (result.status === 'success') {
+                    location.reload();
+                }
+            } catch (error) {
+                console.error('Error reloading data:', error);
+            }
+        }
+
+        // Toggle character list expansion
+        function toggleCharacterList(itemId) {
+            const expandedDiv = document.getElementById(itemId);
+            const button = event.target.closest('button');
+            
+            if (expandedDiv.style.display === 'none') {
+                expandedDiv.style.display = 'block';
+                if (button.querySelector('i')) {
+                    button.innerHTML = '<i class="fas fa-chevron-up"></i>';
+                } else {
+                    // For the "+X more" buttons, change text
+                    const text = button.textContent;
+                    button.textContent = text.replace('+', '-');
+                }
+            } else {
+                expandedDiv.style.display = 'none';
+                if (button.querySelector('i')) {
+                    button.innerHTML = '<i class="fas fa-chevron-down"></i>';
+                } else {
+                    // For the "+X more" buttons, change text back
+                    const text = button.textContent;
+                    button.textContent = text.replace('-', '+');
+                }
+            }
+        }
+
+        // Change view mode
+        function changeViewMode() {
+            const viewMode = document.getElementById('viewMode').value;
+            currentViewMode = viewMode;
+            populateTable();
+        }
+
+        // Toggle item flags visibility
+        function toggleItemFlags() {
+            const hideFlags = document.getElementById('hideItemFlags').checked;
+            
+            // Save preference to localStorage
+            localStorage.setItem('hideItemFlags', hideFlags);
+            
+            // Repopulate table to apply flag hiding
+            populateTable();
+        }
+
+        // Function to clean item flags from item names
+        function cleanItemName(itemName) {
+            const hideFlags = document.getElementById('hideItemFlags').checked;
+            
+            if (!hideFlags) {
+                return itemName; // Return original name if not hiding flags
+            }
+            
+            // Remove common item flags: (Glowing), (Magical), (Humming), (Red Aura), (Flaming White), etc.
+            return itemName
+                .replace(/\([^)]*\)\s*/g, '') // Remove anything in parentheses followed by optional space
+                .trim(); // Remove any leading/trailing whitespace
+        }
+
+        // Load item flags preference
+        function loadItemFlagsPreference() {
+            const hideFlags = localStorage.getItem('hideItemFlags');
+            const flagsToggle = document.getElementById('hideItemFlags');
+            
+            // Default to false if no preference saved
+            if (hideFlags === null) {
+                flagsToggle.checked = false;
+            } else {
+                flagsToggle.checked = hideFlags === 'true';
+            }
+        }
+
+        // Update table headers based on view mode
+        function updateTableHeaders() {
+            const thead = document.querySelector('#inventoryTable thead tr');
+            
+            if (currentViewMode === 'summary') {
+                thead.innerHTML = `
+                    <th>Item Name</th>
+                    <th>Total Quantity</th>
+                    <th>Location Type</th>
+                    <th>Character Count</th>
+                `;
+            } else {
+                thead.innerHTML = `
+                    <th>Item Name</th>
+                    <th>Total Quantity</th>
+                    <th>Location Type</th>
+                    <th>Owned By</th>
+                `;
+            }
+        }
+    </script>
+    </div>
+    
+    <style>
+        /* Additional theme enhancements */
+        .table th {
+            font-family: 'Cinzel', serif;
+            font-weight: 600;
+        }
+        
+        .stat-label {
+            font-family: 'Cinzel', serif;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        .stat-value {
+            font-family: 'Cinzel', serif;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn-filter {
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .btn-filter:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+        }
+        
+        .btn-filter.active {
+            background: linear-gradient(45deg, var(--accent-color), var(--accent-hover)) !important;
+            border-color: var(--accent-color) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--primary-bg);
+            border-radius: 6px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, var(--accent-color), var(--magic-glow));
+            border-radius: 6px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--magic-glow);
+        }
+        
+        /* Page load animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .summary-stats, .filter-section, .inventory-table {
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        .summary-stats { animation-delay: 0.1s; }
+        .filter-section { animation-delay: 0.2s; }
+        .inventory-table { animation-delay: 0.3s; }
+    </style>
+</body>
+</html>

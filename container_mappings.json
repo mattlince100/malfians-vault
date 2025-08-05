@@ -1,0 +1,18 @@
+{
+  "container_mappings": {
+    "an ethereal rift": "my.rift",
+    "an extradimensional portal": "my.extrad",
+    "a Gnomish crafted metal potion container": "my.metal-container",
+    "a laundry basket": "my.basket",
+    "a hardened metal case": "my.case",
+    "a small birch chest": "my.chest",
+    "a pouch of purple cloth": "my.pouch",
+    "a mysterious pouch": "my.mystery",
+    "the air": "my.air-metal"
+  },
+  "metadata": {
+    "version": "1.0",
+    "last_updated": "2025-08-04T14:18:04.884842",
+    "total_mappings": 9
+  }
+}
