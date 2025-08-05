@@ -458,7 +458,7 @@
                             includeInCount = false;
                         } else if (currentFilter === 'equipped' && !detail.location.startsWith('equipped:')) {
                             includeInCount = false;
-                        } else if (currentFilter === 'containers' && (!detail.location.startsWith('my.') && !detail.location.startsWith('house:')) || detail.location === 'inventory' || detail.location.startsWith('equipped:')) {
+                        } else if (currentFilter === 'containers' && (!detail.location.startsWith('my.') && !detail.location.startsWith('house:') || detail.location === 'inventory' || detail.location.startsWith('equipped:'))) {
                             includeInCount = false;
                         }
                     }
