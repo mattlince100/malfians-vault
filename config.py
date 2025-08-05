@@ -9,7 +9,7 @@ MUD_PORT = 4000
 CONNECTION_TIMEOUT = 30  # seconds
 COMMAND_DELAY = 0.1  # seconds between commands
 LOGIN_DELAY = 3.0  # seconds after login
-RATE_LIMIT_DELAY = 3.0  # seconds between characters
+RATE_LIMIT_DELAY = 1.5  # seconds between characters
 
 # Inventory Settings
 # CONTAINERS now handled dynamically by Smart Inventory Scan - see container_mappings.json

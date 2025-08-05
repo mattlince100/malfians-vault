@@ -99,6 +99,11 @@ class MUDClient:
                 "last connected" in response.lower() or
                 "press enter" in response.lower()):
                 logger.info(f"Successfully logged in as {username}")
+                
+                # Disable ANSI colors for cleaner parsing
+                logger.debug("Disabling ANSI colors with 'config -ansi'")
+                await self.send_command("config -ansi", delay=1)
+                
                 return True
             else:
                 logger.error(f"Login failed for {username}")
@@ -146,6 +151,11 @@ class MUDClient:
         """Logout from the MUD cleanly."""
         try:
             logger.info("Logging out")
+            
+            # Re-enable ANSI colors before logout
+            logger.debug("Re-enabling ANSI colors with 'config +ansi'")
+            await self.send_command("config +ansi", delay=0.5)
+            
             await self.send_command("quit", delay=1)
             return True
         except Exception as e:

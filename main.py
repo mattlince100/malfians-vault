@@ -18,11 +18,17 @@ from typing import List, Tuple, Dict
 from mud_client import MUDClient
 from inventory_scanner import InventoryScanner
 from data_manager import DataManager
-from sheets_exporter import SheetsExporter
 from config import (
     CHARACTERS_FILE, LOG_FILE, RATE_LIMIT_DELAY,
     MAX_RETRIES, RETRY_DELAY, DEBUG_MODE
 )
+
+# Optional Google Sheets support
+try:
+    from sheets_exporter import SheetsExporter
+    SHEETS_AVAILABLE = True
+except ImportError:
+    SHEETS_AVAILABLE = False
 
 # Setup logging
 logging.basicConfig(
@@ -396,24 +402,28 @@ async def main(args):
             
         # Export to Google Sheets if requested
         if args.sheets:
-            logger.info("Exporting to Google Sheets...")
-            exporter = SheetsExporter()
-            
-            if exporter.setup_sheets_client():
-                if exporter.create_or_update_sheet(args.sheet_name):
-                    df = data_manager.process_inventory_data()
-                    if exporter.upload_inventory_data(df):
-                        stats = data_manager.generate_summary_stats()
-                        exporter.create_summary_worksheet(stats)
-                        
-                        url = exporter.get_spreadsheet_url()
-                        logger.info(f"Google Sheets updated: {url}")
-                    else:
-                        logger.error("Failed to upload data to Google Sheets")
-                else:
-                    logger.error("Failed to create/update spreadsheet")
+            if not SHEETS_AVAILABLE:
+                logger.error("❌ Google Sheets export requested but sheets_exporter module not available")
+                logger.info("To enable Google Sheets support, ensure sheets_exporter.py is present")
             else:
-                logger.error("Failed to authenticate with Google Sheets")
+                logger.info("Exporting to Google Sheets...")
+                exporter = SheetsExporter()
+                
+                if exporter.setup_sheets_client():
+                    if exporter.create_or_update_sheet(args.sheet_name):
+                        df = data_manager.process_inventory_data()
+                        if exporter.upload_inventory_data(df):
+                            stats = data_manager.generate_summary_stats()
+                            exporter.create_summary_worksheet(stats)
+                            
+                            url = exporter.get_spreadsheet_url()
+                            logger.info(f"Google Sheets updated: {url}")
+                        else:
+                            logger.error("Failed to upload data to Google Sheets")
+                    else:
+                        logger.error("Failed to create/update spreadsheet")
+                else:
+                    logger.error("Failed to authenticate with Google Sheets")
                 
         # Print summary
         stats = data_manager.generate_summary_stats()
