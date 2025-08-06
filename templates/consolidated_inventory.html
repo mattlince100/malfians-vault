@@ -760,17 +760,21 @@
             
             if (currentViewMode === 'summary') {
                 thead.innerHTML = `
+                    <th width="80">For Sale</th>
                     <th>Item Name</th>
                     <th>Total Quantity</th>
                     <th>Location Type</th>
                     <th>Character Count</th>
+                    <th width="150">Sale Price</th>
                 `;
             } else {
                 thead.innerHTML = `
+                    <th width="80">For Sale</th>
                     <th>Item Name</th>
                     <th>Total Quantity</th>
                     <th>Location Type</th>
                     <th>Owned By</th>
+                    <th width="150">Sale Price</th>
                 `;
             }
         }
