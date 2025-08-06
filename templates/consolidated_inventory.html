@@ -364,12 +364,12 @@
         <table id="inventoryTable" class="table table-dark table-hover">
             <thead>
                 <tr>
-                    <th width="50">Sale</th>
+                    <th width="80">For Sale</th>
                     <th>Item Name</th>
                     <th>Total Quantity</th>
                     <th>Location Type</th>
                     <th>Owned By</th>
-                    <th class="for-sale-column" style="display: none;">Price</th>
+                    <th width="150">Sale Price</th>
                 </tr>
             </thead>
             <tbody id="inventoryTableBody">
@@ -603,7 +603,7 @@
                     currentFilter === 'all' ? item.total_quantity : filteredTotal,
                     `<span class="location-badge">${locationDisplay}</span>`,
                     characterDisplay,
-                    `<input type="text" class="form-control form-control-sm for-sale-price" placeholder="Price" value="${price}" data-item="${item.item_name.replace(/"/g, '&quot;')}" onchange="updatePrice(this)" style="display: none;">`
+                    `<input type="text" class="form-control form-control-sm for-sale-price" placeholder="Enter price..." value="${price}" data-item="${item.item_name.replace(/"/g, '&quot;')}" onchange="updatePrice(this)" style="width: 100%; min-width: 100px;">`
                 ]);
             });
             
@@ -652,13 +652,11 @@
                     // Apply filter
                     currentFilter = this.getAttribute('data-filter');
                     
-                    // Show/hide export button and price column
+                    // Show/hide export button based on filter
                     if (currentFilter === 'for-sale') {
                         document.getElementById('exportForSaleBtn').style.display = 'block';
-                        document.querySelectorAll('.for-sale-column, .for-sale-price').forEach(el => el.style.display = '');
                     } else {
                         document.getElementById('exportForSaleBtn').style.display = 'none';
-                        document.querySelectorAll('.for-sale-column, .for-sale-price').forEach(el => el.style.display = 'none');
                     }
                     
                     populateTable();
@@ -877,6 +875,33 @@
     </div>
     
     <style>
+        /* For Sale Features */
+        .for-sale-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--gold-color);
+        }
+        
+        .for-sale-price {
+            background: var(--accent-bg) !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--gold-color) !important;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .for-sale-price:focus {
+            border-color: var(--gold-color) !important;
+            box-shadow: 0 0 0 0.2rem rgba(251, 191, 36, 0.25) !important;
+        }
+        
+        .for-sale-price::placeholder {
+            color: var(--text-secondary);
+            font-weight: normal;
+            font-style: italic;
+        }
+        
         /* Additional theme enhancements */
         .table th {
             font-family: 'Cinzel', serif;
