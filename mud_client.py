@@ -102,7 +102,7 @@ class MUDClient:
                 
                 # Disable ANSI colors for cleaner parsing
                 logger.debug("Disabling ANSI colors with 'config -ansi'")
-                await self.send_command("config -ansi", delay=1)
+                await self.send_command("config -ansi", delay=2.0)
                 
                 return True
             else:
@@ -154,7 +154,7 @@ class MUDClient:
             
             # Re-enable ANSI colors before logout
             logger.debug("Re-enabling ANSI colors with 'config +ansi'")
-            await self.send_command("config +ansi", delay=0.5)
+            await self.send_command("config +ansi", delay=2.0)
             
             await self.send_command("quit", delay=1)
             return True
