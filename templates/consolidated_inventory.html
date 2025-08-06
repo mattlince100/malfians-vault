@@ -333,6 +333,9 @@
                     <button class="btn btn-filter" data-filter="containers">
                         <i class="fas fa-box me-1"></i> Containers
                     </button>
+                    <button class="btn btn-filter" data-filter="for-sale">
+                        <i class="fas fa-tag me-1"></i> For Sale
+                    </button>
                 </div>
             </div>
             <div class="col-md-4 text-end">
@@ -349,6 +352,9 @@
                         Hide Item Flags
                     </label>
                 </div>
+                <button class="btn btn-secondary mt-2" onclick="exportForSale()" style="display: none;" id="exportForSaleBtn">
+                    <i class="fas fa-clipboard me-1"></i> Copy Sale List
+                </button>
             </div>
         </div>
     </div>
@@ -358,10 +364,12 @@
         <table id="inventoryTable" class="table table-dark table-hover">
             <thead>
                 <tr>
+                    <th width="50">Sale</th>
                     <th>Item Name</th>
                     <th>Total Quantity</th>
                     <th>Location Type</th>
                     <th>Owned By</th>
+                    <th class="for-sale-column" style="display: none;">Price</th>
                 </tr>
             </thead>
             <tbody id="inventoryTableBody">
@@ -381,12 +389,18 @@
         let currentFilter = 'all';
         let currentViewMode = 'detailed';
         let isInitialLoad = true;
+        let forSaleItems = {};
 
         // Load data on page load
         async function loadData() {
             try {
+                // Load inventory data
                 const response = await fetch('/api/consolidated-inventory');
                 allItems = await response.json();
+                
+                // Load for-sale items
+                const forSaleResponse = await fetch('/api/for-sale-items');
+                forSaleItems = await forSaleResponse.json();
                 
                 // Consolidate items
                 consolidateItems();
@@ -460,6 +474,9 @@
                             includeInCount = false;
                         } else if (currentFilter === 'containers' && (!detail.location.startsWith('my.') && !detail.location.startsWith('house:') || detail.location === 'inventory' || detail.location.startsWith('equipped:'))) {
                             includeInCount = false;
+                        } else if (currentFilter === 'for-sale') {
+                            // For sale filter shows all locations for marked items
+                            includeInCount = true;
                         }
                     }
                     
@@ -569,11 +586,24 @@
                 const locationDisplay = Array.from(locationTypes).join(', ');
                 
                 // Add to filtered data array
+                // Check if item is for sale
+                const isForSale = forSaleItems[item.item_name] ? true : false;
+                const price = forSaleItems[item.item_name]?.price || '';
+                
+                // Apply for-sale filter if active
+                if (currentFilter === 'for-sale' && !isForSale) {
+                    return; // Skip items not marked for sale
+                }
+                
+                const checkboxHtml = `<input type="checkbox" class="for-sale-checkbox" data-item="${item.item_name.replace(/"/g, '&quot;')}" ${isForSale ? 'checked' : ''} onchange="toggleForSale(this)">`;
+                
                 filteredData.push([
+                    checkboxHtml,
                     `<span class="${itemClass}">${cleanItemName(item.item_name)}</span>`,
                     currentFilter === 'all' ? item.total_quantity : filteredTotal,
                     `<span class="location-badge">${locationDisplay}</span>`,
-                    characterDisplay
+                    characterDisplay,
+                    `<input type="text" class="form-control form-control-sm for-sale-price" placeholder="Price" value="${price}" data-item="${item.item_name.replace(/"/g, '&quot;')}" onchange="updatePrice(this)" style="display: none;">`
                 ]);
             });
             
@@ -621,6 +651,16 @@
                     
                     // Apply filter
                     currentFilter = this.getAttribute('data-filter');
+                    
+                    // Show/hide export button and price column
+                    if (currentFilter === 'for-sale') {
+                        document.getElementById('exportForSaleBtn').style.display = 'block';
+                        document.querySelectorAll('.for-sale-column, .for-sale-price').forEach(el => el.style.display = '');
+                    } else {
+                        document.getElementById('exportForSaleBtn').style.display = 'none';
+                        document.querySelectorAll('.for-sale-column, .for-sale-price').forEach(el => el.style.display = 'none');
+                    }
+                    
                     populateTable();
                 });
             });
@@ -735,6 +775,103 @@
                     <th>Owned By</th>
                 `;
             }
+        }
+        
+        // For-sale management functions
+        async function toggleForSale(checkbox) {
+            const itemName = checkbox.dataset.item;
+            const isForSale = checkbox.checked;
+            const priceInput = document.querySelector(`.for-sale-price[data-item="${itemName.replace(/"/g, '&quot;')}"]`);
+            const price = priceInput ? priceInput.value : '';
+            
+            try {
+                const response = await fetch('/api/for-sale-items', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        item_name: itemName,
+                        for_sale: isForSale,
+                        price: price
+                    })
+                });
+                
+                if (response.ok) {
+                    // Update local forSaleItems
+                    if (isForSale) {
+                        forSaleItems[itemName] = { for_sale: true, price: price };
+                    } else {
+                        delete forSaleItems[itemName];
+                    }
+                } else {
+                    // Revert checkbox on error
+                    checkbox.checked = !isForSale;
+                    alert('Failed to update item status');
+                }
+            } catch (error) {
+                console.error('Error updating for-sale status:', error);
+                checkbox.checked = !isForSale;
+            }
+        }
+        
+        async function updatePrice(input) {
+            const itemName = input.dataset.item;
+            const price = input.value;
+            const checkbox = document.querySelector(`.for-sale-checkbox[data-item="${itemName.replace(/"/g, '&quot;')}"]`);
+            
+            if (!checkbox.checked) {
+                return; // Don't update price if not for sale
+            }
+            
+            try {
+                const response = await fetch('/api/for-sale-items', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        item_name: itemName,
+                        for_sale: true,
+                        price: price
+                    })
+                });
+                
+                if (response.ok) {
+                    forSaleItems[itemName].price = price;
+                }
+            } catch (error) {
+                console.error('Error updating price:', error);
+            }
+        }
+        
+        function exportForSale() {
+            let saleText = "=== FOR SALE ===\n\n";
+            
+            Object.entries(forSaleItems).forEach(([itemName, data]) => {
+                const price = data.price ? ` - ${data.price}` : '';
+                saleText += `${itemName}${price}\n`;
+            });
+            
+            saleText += "\n=== END OF SALE LIST ===";
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(saleText).then(() => {
+                // Show success message
+                const btn = document.getElementById('exportForSaleBtn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check me-1"></i> Copied!';
+                btn.classList.add('btn-success');
+                btn.classList.remove('btn-secondary');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-secondary');
+                }, 2000);
+            }).catch(err => {
+                alert('Failed to copy to clipboard');
+            });
         }
     </script>
     </div>

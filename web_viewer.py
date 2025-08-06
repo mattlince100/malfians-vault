@@ -393,6 +393,57 @@ def get_character_roles():
             return jsonify(json.load(f))
     return jsonify({})
 
+@app.route('/api/for-sale-items')
+def get_for_sale_items():
+    """API endpoint for getting items marked for sale."""
+    for_sale_file = 'for_sale_items.json'
+    if os.path.exists(for_sale_file):
+        with open(for_sale_file, 'r') as f:
+            return jsonify(json.load(f))
+    return jsonify({})
+
+@app.route('/api/for-sale-items', methods=['POST'])
+def update_for_sale_items():
+    """API endpoint for updating items marked for sale."""
+    try:
+        data = request.json
+        for_sale_file = 'for_sale_items.json'
+        
+        # Load existing data
+        existing_data = {}
+        if os.path.exists(for_sale_file):
+            with open(for_sale_file, 'r') as f:
+                existing_data = json.load(f)
+        
+        # Update with new data
+        item_name = data.get('item_name')
+        is_for_sale = data.get('for_sale', False)
+        price = data.get('price', '')
+        notes = data.get('notes', '')
+        
+        if not item_name:
+            return jsonify({'error': 'item_name required'}), 400
+        
+        if is_for_sale:
+            existing_data[item_name] = {
+                'for_sale': True,
+                'price': price,
+                'notes': notes,
+                'timestamp': datetime.now().isoformat()
+            }
+        else:
+            # Remove from for-sale if unchecked
+            existing_data.pop(item_name, None)
+        
+        # Save updated data
+        with open(for_sale_file, 'w') as f:
+            json.dump(existing_data, f, indent=2)
+        
+        return jsonify({'success': True, 'item': item_name, 'for_sale': is_for_sale})
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/scan-info')
 def api_scan_info():
     """API endpoint for getting scan information (last scan time, file info)."""

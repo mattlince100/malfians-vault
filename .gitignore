@@ -11,6 +11,8 @@ credentials.json
 !*.csv.example
 character_stats_*.csv
 inventory_backup_*.csv
+character_roles.json
+for_sale_items.json
 
 # Log files (keep directory, ignore contents)
 logs/*
