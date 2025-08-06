@@ -17,7 +17,7 @@ EQUIPMENT_COMMAND = "equipment"
 INVENTORY_COMMAND = "inventory"
 
 # House Inventory Settings
-HOUSES_FILE = "houses.csv"
+HOUSES_FILE = "houses_v2.csv"
 HOUSE_MOVEMENT_DELAY = 2.0  # seconds between movement commands
 HOUSE_EXAMINE_DELAY = 2.0   # seconds between examining containers
 

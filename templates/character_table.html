@@ -797,12 +797,12 @@
                             <i class="fas fa-check"></i>
                         </span>
                     </td>
-                    <td>${char.hp}</td>
-                    <td>${char.dr}</td>
+                    <td data-order="${char.hp === '-' ? 0 : parseInt(char.hp) || 0}">${char.hp}</td>
+                    <td data-order="${char.dr === '-' ? 0 : parseInt(char.dr) || 0}">${char.dr}</td>
                     <td>${char.deity}</td>
                     <td>${char.gender}</td>
-                    <td>${char.glory}</td>
-                    <td class="gold-value">${formatGold(char.gold)}</td>
+                    <td data-order="${parseInt(char.glory) || 0}">${char.glory}</td>
+                    <td class="gold-value" data-order="${char.gold}">${formatGold(char.gold)}</td>
                     <td><span class="placeholder-needs">${char.needs}</span></td>
                 `;
                 tbody.appendChild(row);
@@ -819,11 +819,11 @@
                 lengthChange: true,
                 order: [[0, 'asc']],
                 columnDefs: [
-                    { targets: 7, type: 'string', orderable: true }, // Role column - explicitly enable string sorting
-                    { targets: 8, type: 'num', orderable: true }, // HP column - numeric sorting
-                    { targets: 9, type: 'num', orderable: true }, // DR column - numeric sorting  
-                    { targets: 12, type: 'num', orderable: true }, // Glory column - numeric sorting
-                    { targets: 13, type: 'num', orderable: true }, // Gold column - numeric sorting
+                    { targets: 7, type: 'string', orderable: true }, // Role column - string sorting
+                    { targets: 8, type: 'num-fmt', orderable: true }, // HP column - use data-order attribute
+                    { targets: 9, type: 'num-fmt', orderable: true }, // DR column - use data-order attribute
+                    { targets: 12, type: 'num-fmt', orderable: true }, // Glory column - use data-order attribute
+                    { targets: 13, type: 'num-fmt', orderable: true }, // Gold column - use data-order attribute
                     { targets: -1, orderable: false } // Needs column
                 ],
                 language: {

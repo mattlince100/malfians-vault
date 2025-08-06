@@ -267,6 +267,15 @@ async def scan_character(username: str, password: str, data_manager: DataManager
             
         except Exception as e:
             logger.error(f"Error scanning {username}: {str(e)}")
+            
+            # Always attempt cleanup on error
+            try:
+                if client.connected:
+                    await client.logout()
+                    await client.disconnect()
+            except Exception as cleanup_error:
+                logger.debug(f"Cleanup error: {cleanup_error}")
+            
             if attempt < MAX_RETRIES - 1:
                 logger.info(f"Retrying... (attempt {attempt + 2}/{MAX_RETRIES})")
                 await asyncio.sleep(RETRY_DELAY)
