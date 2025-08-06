@@ -553,9 +553,9 @@
                 
                 // Style item name based on properties
                 let itemClass = 'item-name';
-                if (item.raw_line.includes('(Magical)')) itemClass += ' magical-item';
-                if (item.raw_line.includes('(Glowing)')) itemClass += ' glowing-item';
-                if (item.raw_line.includes('(Humming)')) itemClass += ' humming-item';
+                if (item.raw_line && item.raw_line.includes('(Magical)')) itemClass += ' magical-item';
+                if (item.raw_line && item.raw_line.includes('(Glowing)')) itemClass += ' glowing-item';
+                if (item.raw_line && item.raw_line.includes('(Humming)')) itemClass += ' humming-item';
                 
                 // Determine primary location type for display
                 const locationTypes = new Set();
@@ -580,10 +580,21 @@
                         locationTypes.add('Equipment');
                     } else if (currentFilter === 'containers') {
                         locationTypes.add('Containers');
+                    } else if (currentFilter === 'for-sale') {
+                        // For sale items can be from any location
+                        Array.from(item.locations).forEach(loc => {
+                            if (loc.startsWith('equipped:')) {
+                                locationTypes.add('Equipment');
+                            } else if ((loc.startsWith('my.') && loc !== 'inventory' && !loc.startsWith('equipped:')) || loc.startsWith('house:')) {
+                                locationTypes.add('Containers');
+                            } else if (loc === 'inventory') {
+                                locationTypes.add('Inventory');
+                            }
+                        });
                     }
                 }
                 
-                const locationDisplay = Array.from(locationTypes).join(', ');
+                const locationDisplay = Array.from(locationTypes).join(', ') || 'Unknown';
                 
                 // Add to filtered data array
                 // Check if item is for sale
