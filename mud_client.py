@@ -156,6 +156,10 @@ class MUDClient:
             logger.debug("Re-enabling ANSI colors with 'config +ansi'")
             await self.send_command("config +ansi", delay=2.0)
             
+            # Save character to ensure config changes persist
+            logger.debug("Saving character configuration")
+            await self.send_command("save", delay=1.0)
+            
             await self.send_command("quit", delay=1)
             return True
         except Exception as e:
