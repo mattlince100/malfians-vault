@@ -4,7 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Character Dashboard - Malfian's Vault</title>
-    <!-- Cache buster: 2025-01-08-v2 -->
+    <!-- Cache buster: 2025-01-08-v4 -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <script>
+        console.log('Dashboard loaded, cache version v4 - ' + new Date().toISOString());
+        window.addEventListener('error', function(e) {
+            console.error('JavaScript error:', e.error);
+        });
+    </script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -354,12 +363,160 @@
         .stat-current { color: #ffffff; font-weight: bold; }
         .stat-base { color: #888; }
         
-        /* House Map Styling */
+        /* ANSI-style Map Styling */
         .house-map {
             padding: 1rem;
-            background: linear-gradient(135deg, rgba(20, 20, 20, 0.9) 0%, rgba(40, 40, 40, 0.9) 100%);
-            border-radius: 12px;
+            background: #000;
+            border-radius: 8px;
             border: 2px solid #444;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .ansi-map {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .map-grid {
+            display: inline-block;
+            background: #111;
+            padding: 1rem;
+            border: 1px solid #333;
+        }
+        
+        .map-row {
+            display: flex;
+        }
+        
+        .map-cell {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            font-size: 24px;
+            color: #888;
+        }
+        
+        .room-cell {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .room-box {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #222;
+            border: 2px solid #666;
+            border-radius: 4px;
+            font-size: 20px;
+            color: #fff;
+            z-index: 2;
+        }
+        
+        .room-cell:hover .room-box {
+            background: #333;
+            border-color: var(--magic-glow);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+        
+        .room-cell.start-room .room-box {
+            background: rgba(255, 215, 0, 0.2);
+            border-color: var(--magic-glow);
+            color: var(--magic-glow);
+        }
+        
+        .room-cell.selected-room .room-box {
+            background: rgba(100, 149, 237, 0.3);
+            border-color: #6495ed;
+            box-shadow: 0 0 15px rgba(100, 149, 237, 0.7);
+        }
+        
+        .room-label {
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: #aaa;
+            text-align: center;
+            white-space: nowrap;
+            z-index: 3;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        
+        .start-room .room-label {
+            color: var(--magic-glow);
+            font-weight: bold;
+        }
+        
+        /* Connection lines */
+        .connection {
+            position: absolute;
+            color: #666;
+            font-size: 20px;
+            line-height: 1;
+        }
+        
+        .connection.north {
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .connection.south {
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .connection.east {
+            right: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .connection.west {
+            left: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .empty-cell {
+            color: #444;
+            font-size: 16px;
+        }
+        
+        /* Map Legend */
+        .map-legend {
+            margin-top: 1rem;
+            padding: 0.5rem;
+            background: rgba(40, 40, 40, 0.5);
+            border-radius: 4px;
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+        
+        .legend-symbol {
+            color: var(--magic-glow);
+            font-weight: bold;
         }
         
         .house-rooms {
@@ -462,7 +619,91 @@
         .depth-4 { margin-left: 8rem; border-left: 3px solid #999; }
         .depth-5 { margin-left: 10rem; border-left: 3px solid #aaa; }
         
-        /* House Inventory Styling */
+        /* House Inventory Table Styling */
+        .house-inventory-list {
+            padding: 0.5rem 0;
+        }
+        
+        .filter-indicator {
+            background: rgba(100, 149, 237, 0.1);
+            border: 1px solid #6495ed;
+            border-radius: 6px;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .container-section {
+            margin-bottom: 2rem;
+            background: rgba(20, 20, 20, 0.4);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+        
+        .container-header {
+            background: rgba(40, 40, 40, 0.8);
+            padding: 0.75rem 1rem;
+            margin: 0;
+            border-bottom: 2px solid var(--magic-glow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-primary);
+        }
+        
+        .item-count {
+            background: rgba(255, 215, 0, 0.2);
+            color: var(--magic-glow);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .container-items-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .container-items-table thead {
+            background: rgba(30, 30, 30, 0.6);
+        }
+        
+        .container-items-table th {
+            padding: 0.5rem 1rem;
+            text-align: left;
+            color: #aaa;
+            font-weight: 600;
+            border-bottom: 1px solid #444;
+        }
+        
+        .container-items-table tbody tr {
+            transition: background 0.2s;
+        }
+        
+        .container-items-table tbody tr:hover {
+            background: rgba(255, 215, 0, 0.05);
+        }
+        
+        .container-items-table td {
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .item-name-cell {
+            color: var(--text-primary);
+        }
+        
+        .item-quantity-cell {
+            text-align: center;
+            color: var(--magic-glow);
+            font-weight: bold;
+        }
+        
+        /* Legacy inventory location styling */
         .inventory-location {
             margin-bottom: 1.5rem;
             padding: 1rem;
@@ -895,43 +1136,121 @@
             }
         }
 
-        // Parse house layout from room data
+        // Parse house layout from room data and build grid positions
         function parseHouseLayout(roomsString) {
             const rooms = roomsString.split('|');
             const houseData = {
                 rooms: [],
                 layout: new Map(),
-                startRoom: null
+                startRoom: null,
+                grid: new Map() // Store grid positions
             };
             
-            rooms.forEach(roomString => {
+            // Manually position rooms for Kaan's house to create inverted T shape
+            // This is based on the actual room connections:
+            // Manse (start) -> down -> Madness -> down -> Base -> south -> Alchemy
+            //                                        Base -> north -> Vault (goes north from Base)
+            
+            let minX = 0, maxX = 0, minY = 0, maxY = 0;
+            
+            rooms.forEach((roomString, index) => {
                 const [roomName, path, containers] = roomString.split(':');
                 const room = {
                     name: roomName.trim(),
                     path: path.trim(),
                     containers: containers ? containers.split(',').map(c => c.trim()) : [],
-                    isStart: path === 'start'
+                    isStart: path === 'start',
+                    x: 0,
+                    y: 0,
+                    level: 0 // Track vertical level
                 };
                 
+                // Manually set positions based on the known layout
                 if (room.isStart) {
+                    // Manse of the Macabre - top center
                     houseData.startRoom = room.name;
+                    room.x = 0;
+                    room.y = 0;
+                    room.level = 0;
+                } else if (room.name.includes('Madness')) {
+                    // Madness Below - directly below start
+                    room.x = 0;
+                    room.y = 1;
+                    room.level = -1;
+                } else if (room.name.includes('Base') || room.name.includes('Pit')) {
+                    // Base of the Pit - center of the T
+                    room.x = 0;
+                    room.y = 2;
+                    room.level = -2;
+                } else if (room.name.includes('Alchemy')) {
+                    // Alchemy Laboratory - to the right of Base (right arm of inverted T)
+                    room.x = 1;
+                    room.y = 2;
+                    room.level = -2;
+                } else if (room.name.includes('Vault')) {
+                    // Vault of the Elders - to the left of Base (left arm of inverted T)
+                    room.x = -1;
+                    room.y = 2;
+                    room.level = -2;
                 }
+                
+                minX = Math.min(minX, room.x);
+                maxX = Math.max(maxX, room.x);
+                minY = Math.min(minY, room.y);
+                maxY = Math.max(maxY, room.y);
                 
                 houseData.rooms.push(room);
                 houseData.layout.set(room.name, room);
             });
             
+            // Normalize positions to start from 0,0
+            houseData.rooms.forEach(room => {
+                room.x -= minX;
+                room.y -= minY;
+                houseData.grid.set(`${room.x},${room.y}`, room);
+            });
+            
+            houseData.width = maxX - minX + 1;
+            houseData.height = maxY - minY + 1;
+            
             return houseData;
+        }
+        
+        // Calculate room position from movement path
+        function calculateRoomPosition(path) {
+            let x = 0, y = 0;
+            if (path === 'start') return {x, y};
+            
+            const moves = path.split(';');
+            moves.forEach(move => {
+                switch(move.trim()) {
+                    case 'n': y--; break;  // North goes up
+                    case 's': y++; break;  // South goes down
+                    case 'e': x++; break;  // East goes right
+                    case 'w': x--; break;  // West goes left
+                    case 'u': break;       // Up doesn't change map position (vertical level)
+                    case 'd': break;       // Down doesn't change map position (vertical level)
+                    case 'ne': x++; y--; break;
+                    case 'nw': x--; y--; break;
+                    case 'se': x++; y++; break;
+                    case 'sw': x--; y++; break;
+                }
+            });
+            
+            return {x, y};
         }
         
         // Render house layout visualization
         function renderHouseDetails(data, houseLayout) {
+            // Store containers globally for filtering
+            window.currentHouseContainers = data.containers;
+            
             const container = document.getElementById('characterDetails');
             container.innerHTML = `
                 <!-- House Layout -->
                 <div class="detail-card">
                     <div class="detail-card-header">
-                        <h5 class="mb-0"><i class="fas fa-home me-2"></i>House Layout: ${data.character}</h5>
+                        <h5 class="mb-0"><i class="fas fa-home me-2"></i>House Map: ${data.house_name || data.character}</h5>
                     </div>
                     <div class="detail-card-body">
                         <div class="house-map">
@@ -943,34 +1262,107 @@
                 <!-- House Inventory -->
                 <div class="detail-card">
                     <div class="detail-card-header">
-                        <h5 class="mb-0"><i class="fas fa-boxes me-2"></i>Storage Containers (${data.inventory?.length || 0} items)</h5>
+                        <h5 class="mb-0"><i class="fas fa-boxes me-2"></i>Storage Containers (${getTotalItemCount(data.containers)} items)</h5>
                     </div>
-                    <div class="detail-card-body">
-                        ${data.inventory && data.inventory.length > 0 ? renderHouseInventory(data.inventory) : '<p class="text-muted">No items found in house storage.</p>'}
+                    <div class="detail-card-body house-inventory-content">
+                        ${data.containers && Object.keys(data.containers).length > 0 ? renderHouseInventoryFromContainers(data.containers) : '<p class="text-muted">No items found in house storage.</p>'}
                     </div>
                 </div>
             `;
+            
+            // Make filter functions globally accessible
+            window.filterRoomInventory = filterRoomInventory;
+            window.clearRoomFilter = clearRoomFilter;
         }
         
-        // Render house map visualization
+        // Render ANSI-style grid map
         function renderHouseMap(houseLayout) {
-            let mapHtml = '<div class="house-rooms">';
+            if (!houseLayout.grid || houseLayout.grid.size === 0) {
+                return '<div class="no-map">No map data available</div>';
+            }
             
-            // Start with the starting room
-            if (houseLayout.startRoom) {
-                const startRoom = houseLayout.layout.get(houseLayout.startRoom);
-                mapHtml += renderRoomNode(startRoom, 0, true);
-                
-                // Render connected rooms
-                houseLayout.rooms.forEach(room => {
-                    if (!room.isStart) {
-                        mapHtml += renderRoomNode(room, getPathDepth(room.path), false);
+            let mapHtml = '<div class="ansi-map">';
+            mapHtml += '<div class="map-grid">';
+            
+            // Create the grid
+            for (let y = 0; y < houseLayout.height; y++) {
+                mapHtml += '<div class="map-row">';
+                for (let x = 0; x < houseLayout.width; x++) {
+                    const room = houseLayout.grid.get(`${x},${y}`);
+                    if (room) {
+                        // Check connections to adjacent rooms
+                        const connections = getConnections(x, y, houseLayout);
+                        mapHtml += `
+                            <div class="map-cell room-cell ${room.isStart ? 'start-room' : ''}" 
+                                 data-room="${room.name}"
+                                 data-containers="${room.containers.join(', ')}"
+                                 title="${room.name}">
+                                <div class="room-box" onclick="filterRoomInventory('${room.name.replace(/'/g, "\\'")}')">
+                                    ${room.isStart ? '⌂' : '□'}
+                                </div>
+                                ${connections}
+                                <div class="room-label">${room.name.split(' ').slice(0, 2).join(' ')}</div>
+                            </div>
+                        `;
+                    } else {
+                        // Empty cell - check if it should have connection lines
+                        const lineType = getConnectionLine(x, y, houseLayout);
+                        mapHtml += `<div class="map-cell empty-cell">${lineType}</div>`;
                     }
-                });
+                }
+                mapHtml += '</div>';
             }
             
             mapHtml += '</div>';
+            
+            // Add legend
+            mapHtml += `
+                <div class="map-legend">
+                    <div class="legend-item"><span class="legend-symbol">⌂</span> Starting Room</div>
+                    <div class="legend-item"><span class="legend-symbol">□</span> Room</div>
+                    <div class="legend-item"><span class="legend-symbol">─│┌┐└┘├┤┬┴┼</span> Connections</div>
+                </div>
+            `;
+            
+            mapHtml += '</div>';
             return mapHtml;
+        }
+        
+        // Get connection symbols for a room
+        function getConnections(x, y, houseLayout) {
+            let connections = '';
+            const hasNorth = houseLayout.grid.has(`${x},${y-1}`);
+            const hasSouth = houseLayout.grid.has(`${x},${y+1}`);
+            const hasEast = houseLayout.grid.has(`${x+1},${y}`);
+            const hasWest = houseLayout.grid.has(`${x-1},${y}`);
+            
+            if (hasNorth) connections += '<div class="connection north">│</div>';
+            if (hasSouth) connections += '<div class="connection south">│</div>';
+            if (hasEast) connections += '<div class="connection east">─</div>';
+            if (hasWest) connections += '<div class="connection west">─</div>';
+            
+            return connections;
+        }
+        
+        // Get connection line type for empty cells
+        function getConnectionLine(x, y, houseLayout) {
+            // Check if this empty cell is between two rooms
+            const hasNorth = houseLayout.grid.has(`${x},${y-1}`);
+            const hasSouth = houseLayout.grid.has(`${x},${y+1}`);
+            const hasEast = houseLayout.grid.has(`${x+1},${y}`);
+            const hasWest = houseLayout.grid.has(`${x-1},${y}`);
+            
+            // Vertical line
+            if (hasNorth && hasSouth) return '│';
+            // Horizontal line
+            if (hasEast && hasWest) return '─';
+            // Corners and junctions
+            if (hasNorth && hasEast) return '└';
+            if (hasNorth && hasWest) return '┘';
+            if (hasSouth && hasEast) return '┌';
+            if (hasSouth && hasWest) return '┐';
+            
+            return '';
         }
         
         // Render individual room node
@@ -1007,7 +1399,102 @@
             return path.split(';').join(' → ');
         }
         
-        // Render house inventory
+        // Get total item count from containers
+        function getTotalItemCount(containers) {
+            if (!containers) return 0;
+            return Object.values(containers).reduce((total, items) => total + items.length, 0);
+        }
+        
+        // Render house inventory from containers structure
+        function renderHouseInventoryFromContainers(containers, filterRoom = null) {
+            let html = '<div class="house-inventory-list">';
+            
+            // Add filter indicator if filtering
+            if (filterRoom) {
+                html += `
+                    <div class="filter-indicator">
+                        <i class="fas fa-filter"></i> Showing items from: <strong>${filterRoom}</strong>
+                        <button class="btn btn-sm btn-outline-secondary ms-2" onclick="clearRoomFilter()">
+                            <i class="fas fa-times"></i> Clear Filter
+                        </button>
+                    </div>
+                `;
+            }
+            
+            Object.entries(containers).forEach(([location, items]) => {
+                // Parse location to get room name
+                const [roomName, containerName] = location.replace('house:', '').split(':');
+                
+                // Skip if filtering and doesn't match
+                if (filterRoom && !roomName.includes(filterRoom)) {
+                    return;
+                }
+                
+                html += `
+                    <div class="container-section" data-room="${roomName}">
+                        <h6 class="container-header">
+                            <i class="fas fa-box"></i> ${roomName} - ${containerName || 'Storage'}
+                            <span class="item-count">${items.length} items</span>
+                        </h6>
+                        <table class="container-items-table">
+                            <thead>
+                                <tr>
+                                    <th>Item Name</th>
+                                    <th style="width: 100px; text-align: center;">Quantity</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${items.map(item => `
+                                    <tr>
+                                        <td class="item-name-cell">${item.item_name}</td>
+                                        <td class="item-quantity-cell">${item.quantity}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            return html;
+        }
+        
+        // Global variable to track filtered room
+        let currentFilteredRoom = null;
+        
+        // Filter inventory by room
+        function filterRoomInventory(roomName) {
+            currentFilteredRoom = roomName;
+            const inventoryContainer = document.querySelector('.house-inventory-content');
+            if (inventoryContainer && window.currentHouseContainers) {
+                inventoryContainer.innerHTML = renderHouseInventoryFromContainers(window.currentHouseContainers, roomName);
+            }
+            
+            // Highlight selected room on map
+            document.querySelectorAll('.room-cell').forEach(cell => {
+                cell.classList.remove('selected-room');
+                if (cell.getAttribute('data-room') === roomName) {
+                    cell.classList.add('selected-room');
+                }
+            });
+        }
+        
+        // Clear room filter
+        function clearRoomFilter() {
+            currentFilteredRoom = null;
+            const inventoryContainer = document.querySelector('.house-inventory-content');
+            if (inventoryContainer && window.currentHouseContainers) {
+                inventoryContainer.innerHTML = renderHouseInventoryFromContainers(window.currentHouseContainers);
+            }
+            
+            // Remove room highlighting
+            document.querySelectorAll('.room-cell').forEach(cell => {
+                cell.classList.remove('selected-room');
+            });
+        }
+        
+        // Render house inventory (legacy function for backwards compatibility)
         function renderHouseInventory(inventory) {
             const grouped = {};
             inventory.forEach(item => {
@@ -1105,7 +1592,7 @@
             container.innerHTML = characters.map(char => {
                 const stats = characterData[char] || {};
                 return `
-                    <div class="character-card" onclick="selectCharacter('${char}')">
+                    <div class="character-card" data-character="${char}">
                         <div class="character-name">${char.charAt(0).toUpperCase() + char.slice(1)}</div>
                         <div class="character-stats">
                             <div class="stat-item">
@@ -1130,6 +1617,19 @@
                     </div>
                 `;
             }).join('');
+            
+            // Add click event listeners after rendering
+            const cards = document.querySelectorAll('.character-card');
+            console.log('Attaching click handlers to', cards.length, 'character cards');
+            cards.forEach(card => {
+                const characterName = card.getAttribute('data-character');
+                console.log('Attaching handler for:', characterName);
+                card.addEventListener('click', function() {
+                    const name = this.getAttribute('data-character');
+                    console.log('Card clicked:', name);
+                    selectCharacter(name);
+                });
+            });
         }
 
         // Select character
@@ -1164,8 +1664,17 @@
                 const response = await fetch(`/api/character/${characterName}`);
                 const data = await response.json();
                 
+                // Debug logging
+                console.log('Character data:', characterName, data);
+                console.log('House detection:', {
+                    hasHouseName: !!data.house_name,
+                    includesHouse: characterName.includes("'s House"),
+                    includesUnderscore: characterName.includes("_house")
+                });
+                
                 // Check if this is house data by looking for house_name in the data or _house suffix
                 if (data.house_name || characterName.includes("'s House") || characterName.includes("_house")) {
+                    console.log('Detected as house, rendering house layout');
                     // This is a house, render house layout
                     document.getElementById('mainTitle').innerHTML = `
                         <i class="fas fa-home me-2"></i>
@@ -1176,6 +1685,7 @@
                     // Parse house layout from houses_v2.csv data (we'll need to load this)
                     loadHouseLayout(characterName, data);
                 } else {
+                    console.log('Detected as character, rendering character details');
                     // Regular character
                     renderCharacterDetails(data);
                 }
@@ -1630,19 +2140,23 @@
                 document.querySelector('.sidebar').style.display = 'none';
                 document.querySelector('.main-content').style.marginLeft = '0';
                 
-                // Load character data directly
-                loadCharacterDirectly(charParam);
+                // Load character data directly using the same selectCharacter function
+                selectCharacter(charParam);
             } else {
                 // Normal dashboard with sidebar
                 loadCharacters();
             }
+            
+            // Test function accessibility
+            window.selectCharacter = selectCharacter;
+            console.log('selectCharacter function defined:', typeof selectCharacter);
         });
 
         // Load character directly without sidebar
         async function loadCharacterDirectly(characterName) {
             try {
-                // Check if this is a house character
-                const isHouse = characterName.endsWith('_House');
+                // Check if this is a house character (case insensitive)
+                const isHouse = characterName.toLowerCase().endsWith('_house') || characterName.includes("'s House");
                 
                 if (isHouse) {
                     // Load house data

@@ -16,7 +16,13 @@
       "Bash(\"C:\\Program Files\\GitHub CLI\\gh.exe\" release create v2.0.1 --title \"Malfian''s Vault v2.0.1 - Clean Release\" --notes \"## What''s New in v2.0.1\n\n### 🐛 Bug Fixes\n- Fixed inventory parsing for characters with exactly 1 item\n- Fixed missing ''Prestige Only'' dropdown option\n\n### 🧹 Clean Repository\n- Removed all test files\n- Removed nested directories\n- Simplified to essential files only\n- Clean, professional structure\n\n### 📦 Download and Run\n1. Download the source code\n2. Extract to a directory\n3. Run: pip install -r requirements.txt\n4. Configure characters.csv\n5. Run: python main.py\n\nSee README.md for full documentation.\")",
       "Bash(python:*)",
       "Bash(mkdir:*)",
-      "Bash(touch:*)"
+      "Bash(touch:*)",
+      "Bash(cp:*)",
+      "Bash(grep:*)",
+      "Bash(curl:*)",
+      "Bash(pkill:*)",
+      "Bash(true)",
+      "Bash(taskkill:*)"
     ],
     "deny": []
   }
