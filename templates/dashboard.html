@@ -703,6 +703,64 @@
             font-weight: bold;
         }
         
+        /* MUD Item Color - Equipment Green */
+        .item-mud {
+            color: #32cd32 !important;  /* Same green as equipment */
+        }
+        
+        /* Room containers section */
+        .room-containers-section {
+            margin-bottom: 2rem;
+        }
+        
+        .room-name-header {
+            color: var(--magic-glow);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+        }
+        
+        /* For Sale checkbox styling in house containers */
+        .container-line {
+            display: flex;
+            align-items: center;
+            margin: 0.2rem 0;
+        }
+        
+        .for-sale-checkbox {
+            flex-shrink: 0;
+            margin-right: 0.5rem;
+            transform: scale(1.1);
+            cursor: pointer;
+        }
+        
+        .for-sale-checkbox:checked + .item-line-text {
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 3px;
+            padding: 0 0.25rem;
+        }
+        
+        .item-line-text {
+            color: #32cd32;
+            font-family: 'Courier New', monospace;
+            flex: 1;
+        }
+        
+        /* For Sale label styling */
+        .for-sale-label {
+            display: inline-block;
+            font-size: 0.8rem;
+            color: var(--magic-glow);
+            background: rgba(255, 215, 0, 0.1);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            font-weight: normal;
+            margin-right: 1rem;
+        }
+        
         /* Legacy inventory location styling */
         .inventory-location {
             margin-bottom: 1.5rem;
@@ -1273,6 +1331,7 @@
             // Make filter functions globally accessible
             window.filterRoomInventory = filterRoomInventory;
             window.clearRoomFilter = clearRoomFilter;
+            window.toggleForSale = toggleForSale;
         }
         
         // Render ANSI-style grid map
@@ -1405,9 +1464,20 @@
             return Object.values(containers).reduce((total, items) => total + items.length, 0);
         }
         
+        // Format item names with MUD-style colors
+        function formatItemName(itemName) {
+            // For now, just apply the equipment green color to all items
+            // Can be enhanced with specific colors when provided
+            return `<span class="item-mud">${itemName}</span>`;
+        }
+        
         // Render house inventory from containers structure
         function renderHouseInventoryFromContainers(containers, filterRoom = null) {
-            let html = '<div class="house-inventory-list">';
+            if (!containers) {
+                return '<div class="text-center text-muted py-4">No containers found</div>';
+            }
+            
+            let html = '';
             
             // Add filter indicator if filtering
             if (filterRoom) {
@@ -1421,8 +1491,9 @@
                 `;
             }
             
+            // Group containers by room for better organization
+            const containersByRoom = {};
             Object.entries(containers).forEach(([location, items]) => {
-                // Parse location to get room name
                 const [roomName, containerName] = location.replace('house:', '').split(':');
                 
                 // Skip if filtering and doesn't match
@@ -1430,34 +1501,59 @@
                     return;
                 }
                 
-                html += `
-                    <div class="container-section" data-room="${roomName}">
-                        <h6 class="container-header">
-                            <i class="fas fa-box"></i> ${roomName} - ${containerName || 'Storage'}
-                            <span class="item-count">${items.length} items</span>
-                        </h6>
-                        <table class="container-items-table">
-                            <thead>
-                                <tr>
-                                    <th>Item Name</th>
-                                    <th style="width: 100px; text-align: center;">Quantity</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${items.map(item => `
-                                    <tr>
-                                        <td class="item-name-cell">${item.item_name}</td>
-                                        <td class="item-quantity-cell">${item.quantity}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                `;
+                if (!containersByRoom[roomName]) {
+                    containersByRoom[roomName] = {};
+                }
+                containersByRoom[roomName][containerName] = items;
             });
             
-            html += '</div>';
-            return html;
+            // Render containers in MUD style like character containers
+            Object.entries(containersByRoom).forEach(([roomName, roomContainers]) => {
+                html += `<div class="room-containers-section">`;
+                html += `<h6 class="room-name-header"><i class="fas fa-door-open me-2"></i>${roomName}</h6>`;
+                
+                Object.entries(roomContainers).forEach(([containerName, items]) => {
+                    html += `
+                        <div class="detail-card mb-3">
+                            <div class="detail-card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-box me-2"></i>
+                                    ${containerName.charAt(0).toUpperCase() + containerName.slice(1)} (${items.length} items)
+                                </h5>
+                            </div>
+                            <div class="detail-card-body">
+                                ${items.length > 0 ? `
+                                    <div class="mud-container">
+                                        <div class="container-header">
+                                            <span class="for-sale-label">
+                                                <i class="fas fa-store me-1"></i>For Sale
+                                            </span>
+                                            ${containerName} contains:
+                                        </div>
+                                        ${items.map(item => `
+                                            <div class="container-line">
+                                                <input type="checkbox" 
+                                                       class="for-sale-checkbox me-2" 
+                                                       data-item="${item.item_name}"
+                                                       data-character="${item.character || 'house'}"
+                                                       onchange="toggleForSale(this)"
+                                                       title="Mark for sale">
+                                                <span class="item-line-text">
+                                                    ${item.raw_line || `${item.item_name}${item.quantity > 1 ? ` (${item.quantity})` : ''}`}
+                                                </span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                ` : '<div class="text-center text-muted py-3">This container is empty</div>'}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `</div>`;
+            });
+            
+            return html || '<div class="text-center text-muted py-4">No items found</div>';
         }
         
         // Global variable to track filtered room
@@ -1492,6 +1588,40 @@
             document.querySelectorAll('.room-cell').forEach(cell => {
                 cell.classList.remove('selected-room');
             });
+        }
+        
+        // Toggle for sale status
+        async function toggleForSale(checkbox) {
+            const itemName = checkbox.dataset.item;
+            const characterName = checkbox.dataset.character;
+            const isForSale = checkbox.checked;
+            
+            try {
+                const response = await fetch('/api/for-sale-items', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        item_name: itemName,
+                        character: characterName,
+                        for_sale: isForSale,
+                        price: '' // Can be enhanced with price input later
+                    })
+                });
+                
+                if (response.ok) {
+                    console.log(`${isForSale ? 'Added' : 'Removed'} "${itemName}" ${isForSale ? 'to' : 'from'} for sale list`);
+                } else {
+                    console.error('Failed to update for sale status');
+                    // Revert checkbox if API call failed
+                    checkbox.checked = !isForSale;
+                }
+            } catch (error) {
+                console.error('Error updating for sale status:', error);
+                // Revert checkbox if API call failed
+                checkbox.checked = !isForSale;
+            }
         }
         
         // Render house inventory (legacy function for backwards compatibility)
