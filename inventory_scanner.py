@@ -324,7 +324,8 @@ class InventoryScanner:
             'sect': '-',
             'sect_role': '-',
             'order': '-',
-            'order_role': '-'
+            'order_role': '-',
+            'raw_score': score_response  # Save the raw score output
         }
         
         # Parse score response for the detailed MUD format

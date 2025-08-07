@@ -260,6 +260,102 @@
             color: #ffd700;
             font-weight: 600;
         }
+        
+        /* Score Display Styles */
+        .score-display {
+            background: #0a0a0a;
+            border: 2px solid #333;
+            border-radius: 4px;
+            padding: 1.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #c0c0c0;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .score-content {
+            white-space: pre-wrap;
+        }
+        
+        .score-header {
+            color: #ffffff;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #444;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .score-row {
+            margin-bottom: 0.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+        
+        .score-label {
+            color: #808080;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+        
+        .score-value {
+            color: #ffffff;
+        }
+        
+        /* Special value colors */
+        .score-value.gold-value {
+            color: #ffd700;
+            font-weight: bold;
+        }
+        
+        .score-value.glory-value {
+            color: #ff69b4;
+            font-weight: bold;
+        }
+        
+        .score-value.hp-value {
+            color: #ff4444;
+            font-weight: bold;
+        }
+        
+        /* Class colors matching the game */
+        .score-value.class-mage { color: #00ffff; }
+        .score-value.class-cleric { color: #ffffff; }
+        .score-value.class-thief { color: #ffff00; }
+        .score-value.class-warrior { color: #d2691e; }
+        .score-value.class-vampire, .score-value.class-dread { color: #ff6b6b; }
+        .score-value.class-druid { color: #00ff00; }
+        .score-value.class-ranger { color: #32cd32; }
+        .score-value.class-augurer { color: #b0b0b0; }
+        .score-value.class-paladin { color: #ffb6c1; }
+        .score-value.class-nephandi { color: #9400d3; }
+        .score-value.class-fathomer { color: #5f9ea0; }
+        .score-value.class-bladesinger { color: #cd5c5c; }
+        .score-value.class-barbarian { color: #ffa500; }
+        
+        /* Alignment colors */
+        .score-value.align-good {
+            color: #00ff00;
+        }
+        
+        .score-value.align-evil {
+            color: #ff0000;
+        }
+        
+        .score-value.align-neutral {
+            color: #ffff00;
+        }
+        
+        /* Raw score specific styling */
+        .raw-score {
+            white-space: pre;
+            font-size: 13px;
+        }
 
         /* Class color coding */
         .class-mage { color: #00FFFF; } /* Cyan */
@@ -688,57 +784,14 @@
 
             const container = document.getElementById('characterDetails');
             container.innerHTML = `
-                <!-- Character Stats -->
+                <!-- Character Score Display -->
                 <div class="detail-card">
                     <div class="detail-card-header">
-                        <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Character Statistics</h5>
+                        <h5 class="mb-0"><i class="fas fa-scroll me-2"></i>Character Score</h5>
                     </div>
-                    <div class="detail-card-body">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <div class="stat-badge w-100 text-center">
-                                    <div class="text-muted small">Class</div>
-                                    <div class="h6 mb-0">${stats.class || 'Unknown'}</div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="stat-badge w-100 text-center">
-                                    <div class="text-muted small">Race</div>
-                                    <div class="h6 mb-0">${stats.race || 'Unknown'}</div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="stat-badge w-100 text-center">
-                                    <div class="text-muted small">Level</div>
-                                    <div class="h6 mb-0">${stats.level || 'Unknown'}</div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="stat-badge w-100 text-center">
-                                    <div class="text-muted small">Gold</div>
-                                    <div class="h6 mb-0 gold-amount">${formatNumber(stats.gold || '0')}</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row mt-3">
-                            <div class="col-md-4">
-                                <div class="stat-badge w-100 text-center">
-                                    <div class="text-muted small">Gender</div>
-                                    <div class="h6 mb-0">${stats.gender || 'Unknown'}</div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="stat-badge w-100 text-center">
-                                    <div class="text-muted small">Alignment</div>
-                                    <div class="h6 mb-0">${stats.alignment || 'Unknown'}</div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="stat-badge w-100 text-center">
-                                    <div class="text-muted small">Total Items</div>
-                                    <div class="h6 mb-0">${data.total_items || 0}</div>
-                                </div>
-                            </div>
+                    <div class="detail-card-body p-0">
+                        <div class="score-display">
+                            ${formatScoreDisplay(stats)}
                         </div>
                     </div>
                 </div>
@@ -962,6 +1015,123 @@
         // Utility functions
         function formatNumber(num) {
             return parseInt(num || 0).toLocaleString();
+        }
+        
+        function formatScoreDisplay(stats) {
+            // If we have raw score output, parse and format it
+            if (stats.raw_score) {
+                return formatRawScore(stats.raw_score, stats);
+            }
+            
+            // Otherwise, create a formatted display from parsed stats
+            return `
+                <div class="score-content">
+                    <div class="score-header">
+                        <span class="score-title">Score for ${stats.character || 'Unknown'}</span>
+                    </div>
+                    
+                    <div class="score-row">
+                        <span class="score-label">LEVEL:</span> <span class="score-value">${stats.level || '-'}</span>
+                        <span class="score-label">Race:</span> <span class="score-value">${stats.race || '-'}</span>
+                        <span class="score-label">Class:</span> <span class="score-value class-${(stats.class || '').toLowerCase()}">${stats.class || '-'}</span>
+                    </div>
+                    
+                    <div class="score-row">
+                        <span class="score-label">Age:</span> <span class="score-value">${stats.age || '-'}</span>
+                        <span class="score-label">Gender:</span> <span class="score-value">${stats.gender || '-'}</span>
+                        <span class="score-label">Deity:</span> <span class="score-value">${stats.deity || '-'}</span>
+                    </div>
+                    
+                    <div class="score-row">
+                        <span class="score-label">HP:</span> <span class="score-value hp-value">${stats.hitpoints || '-'}</span>
+                        <span class="score-label">DR:</span> <span class="score-value">${stats.damroll || '-'}</span>
+                        <span class="score-label">HR:</span> <span class="score-value">${stats.hitroll || '-'}</span>
+                    </div>
+                    
+                    <div class="score-row">
+                        <span class="score-label">Gold:</span> <span class="score-value gold-value">${formatNumber(stats.gold || 0)}</span>
+                        <span class="score-label">Glory:</span> <span class="score-value glory-value">${formatNumber(stats.glory || 0)}</span>
+                    </div>
+                    
+                    <div class="score-row">
+                        <span class="score-label">Alignment:</span> <span class="score-value align-${getAlignmentClass(stats.alignment)}">${stats.alignment || '-'}</span>
+                    </div>
+                    
+                    ${stats.order && stats.order !== '-' ? `
+                    <div class="score-row">
+                        <span class="score-label">Order:</span> <span class="score-value">${stats.order}</span>
+                        ${stats.order_role && stats.order_role !== '-' ? `<span class="score-label">Role:</span> <span class="score-value">${stats.order_role}</span>` : ''}
+                    </div>
+                    ` : ''}
+                    
+                    ${stats.sect && stats.sect !== '-' ? `
+                    <div class="score-row">
+                        <span class="score-label">Sect:</span> <span class="score-value">${stats.sect}</span>
+                        ${stats.sect_role && stats.sect_role !== '-' ? `<span class="score-label">Role:</span> <span class="score-value">${stats.sect_role}</span>` : ''}
+                    </div>
+                    ` : ''}
+                    
+                    ${stats.guild && stats.guild !== '-' ? `
+                    <div class="score-row">
+                        <span class="score-label">Guild:</span> <span class="score-value">${stats.guild}</span>
+                        ${stats.guild_role && stats.guild_role !== '-' ? `<span class="score-label">Role:</span> <span class="score-value">${stats.guild_role}</span>` : ''}
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+        
+        function formatRawScore(rawScore, stats) {
+            // Parse and format the raw score output into HTML
+            let formatted = '<div class="score-content raw-score">';
+            
+            // Split by lines and process each
+            const lines = rawScore.split('\n');
+            lines.forEach(line => {
+                // Strip ANSI codes if present
+                line = line.replace(/\x1b\[[0-9;]*m/g, '');
+                
+                // Apply formatting based on content
+                if (line.includes('Score for')) {
+                    formatted += `<div class="score-header">${line}</div>`;
+                } else if (line.includes('LEVEL:') || line.includes('Race') || line.includes('Class')) {
+                    formatted += `<div class="score-row">${formatScoreLine(line, stats)}</div>`;
+                } else if (line.includes('Age') || line.includes('Gender')) {
+                    formatted += `<div class="score-row">${formatScoreLine(line, stats)}</div>`;
+                } else if (line.includes('Gold') || line.includes('Glory')) {
+                    formatted += `<div class="score-row">${formatScoreLine(line, stats)}</div>`;
+                } else if (line.trim()) {
+                    formatted += `<div class="score-row">${line}</div>`;
+                }
+            });
+            
+            formatted += '</div>';
+            return formatted;
+        }
+        
+        function formatScoreLine(line, stats) {
+            // Apply color formatting to specific values
+            line = line.replace(/Gold\s*:\s*([0-9,]+)/g, 'Gold: <span class="gold-value">$1</span>');
+            line = line.replace(/Glory\s*:\s*([0-9,]+)/g, 'Glory: <span class="glory-value">$1</span>');
+            line = line.replace(/HP\s*:\s*([0-9\/]+)/g, 'HP: <span class="hp-value">$1</span>');
+            
+            // Highlight class names
+            if (stats.class) {
+                const classRegex = new RegExp(`\\b${stats.class}\\b`, 'gi');
+                line = line.replace(classRegex, `<span class="class-${stats.class.toLowerCase()}">$&</span>`);
+            }
+            
+            return line;
+        }
+        
+        function getAlignmentClass(alignment) {
+            if (!alignment) return 'neutral';
+            const match = alignment.match(/([+-]?\d+)/);
+            if (!match) return 'neutral';
+            const value = parseInt(match[1]);
+            if (value >= 500) return 'good';
+            if (value <= -500) return 'evil';
+            return 'neutral';
         }
 
         async function reloadData(event) {
