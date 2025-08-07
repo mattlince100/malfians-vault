@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Character Dashboard - Malfian's Vault</title>
+    <!-- Cache buster: 2025-01-08-v2 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -352,6 +353,157 @@
         .stat-name { color: #b0b0b0; font-weight: bold; }
         .stat-current { color: #ffffff; font-weight: bold; }
         .stat-base { color: #888; }
+        
+        /* House Map Styling */
+        .house-map {
+            padding: 1rem;
+            background: linear-gradient(135deg, rgba(20, 20, 20, 0.9) 0%, rgba(40, 40, 40, 0.9) 100%);
+            border-radius: 12px;
+            border: 2px solid #444;
+        }
+        
+        .house-rooms {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .room-node {
+            background: rgba(30, 30, 30, 0.95);
+            border: 2px solid #555;
+            border-radius: 8px;
+            padding: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .room-node:hover {
+            border-color: var(--magic-glow);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .start-room {
+            border-color: var(--magic-glow) !important;
+            background: rgba(40, 40, 20, 0.95);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+        }
+        
+        .start-room::before {
+            content: "🏠";
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--magic-glow);
+            color: #000;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        
+        .room-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            gap: 1rem;
+        }
+        
+        .room-name {
+            color: var(--text-primary);
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            flex: 1;
+        }
+        
+        .room-path {
+            color: var(--magic-glow);
+            background: rgba(255, 215, 0, 0.1);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-family: monospace;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+        
+        .room-containers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .container-tag {
+            background: rgba(100, 149, 237, 0.2);
+            color: #6495ed;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(100, 149, 237, 0.4);
+        }
+        
+        .no-containers {
+            color: var(--text-secondary);
+            font-style: italic;
+            font-size: 0.8rem;
+        }
+        
+        /* Depth-based indentation */
+        .depth-1 { margin-left: 2rem; border-left: 3px solid #666; }
+        .depth-2 { margin-left: 4rem; border-left: 3px solid #777; }
+        .depth-3 { margin-left: 6rem; border-left: 3px solid #888; }
+        .depth-4 { margin-left: 8rem; border-left: 3px solid #999; }
+        .depth-5 { margin-left: 10rem; border-left: 3px solid #aaa; }
+        
+        /* House Inventory Styling */
+        .inventory-location {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: rgba(20, 20, 20, 0.6);
+            border-radius: 8px;
+            border-left: 4px solid var(--magic-glow);
+        }
+        
+        .location-header {
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.5rem;
+        }
+        
+        .item-card {
+            background: rgba(40, 40, 40, 0.8);
+            padding: 0.5rem;
+            border-radius: 6px;
+            border: 1px solid #555;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .item-name {
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+        
+        .item-quantity {
+            color: var(--magic-glow);
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
         
         .score-header {
             color: #ffffff;
@@ -743,6 +895,174 @@
             }
         }
 
+        // Parse house layout from room data
+        function parseHouseLayout(roomsString) {
+            const rooms = roomsString.split('|');
+            const houseData = {
+                rooms: [],
+                layout: new Map(),
+                startRoom: null
+            };
+            
+            rooms.forEach(roomString => {
+                const [roomName, path, containers] = roomString.split(':');
+                const room = {
+                    name: roomName.trim(),
+                    path: path.trim(),
+                    containers: containers ? containers.split(',').map(c => c.trim()) : [],
+                    isStart: path === 'start'
+                };
+                
+                if (room.isStart) {
+                    houseData.startRoom = room.name;
+                }
+                
+                houseData.rooms.push(room);
+                houseData.layout.set(room.name, room);
+            });
+            
+            return houseData;
+        }
+        
+        // Render house layout visualization
+        function renderHouseDetails(data, houseLayout) {
+            const container = document.getElementById('characterDetails');
+            container.innerHTML = `
+                <!-- House Layout -->
+                <div class="detail-card">
+                    <div class="detail-card-header">
+                        <h5 class="mb-0"><i class="fas fa-home me-2"></i>House Layout: ${data.character}</h5>
+                    </div>
+                    <div class="detail-card-body">
+                        <div class="house-map">
+                            ${renderHouseMap(houseLayout)}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- House Inventory -->
+                <div class="detail-card">
+                    <div class="detail-card-header">
+                        <h5 class="mb-0"><i class="fas fa-boxes me-2"></i>Storage Containers (${data.inventory?.length || 0} items)</h5>
+                    </div>
+                    <div class="detail-card-body">
+                        ${data.inventory && data.inventory.length > 0 ? renderHouseInventory(data.inventory) : '<p class="text-muted">No items found in house storage.</p>'}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Render house map visualization
+        function renderHouseMap(houseLayout) {
+            let mapHtml = '<div class="house-rooms">';
+            
+            // Start with the starting room
+            if (houseLayout.startRoom) {
+                const startRoom = houseLayout.layout.get(houseLayout.startRoom);
+                mapHtml += renderRoomNode(startRoom, 0, true);
+                
+                // Render connected rooms
+                houseLayout.rooms.forEach(room => {
+                    if (!room.isStart) {
+                        mapHtml += renderRoomNode(room, getPathDepth(room.path), false);
+                    }
+                });
+            }
+            
+            mapHtml += '</div>';
+            return mapHtml;
+        }
+        
+        // Render individual room node
+        function renderRoomNode(room, depth, isStart) {
+            const depthClass = `depth-${Math.min(depth, 5)}`;
+            const startClass = isStart ? 'start-room' : '';
+            const pathDisplay = isStart ? 'START' : formatPath(room.path);
+            
+            return `
+                <div class="room-node ${depthClass} ${startClass}">
+                    <div class="room-header">
+                        <h6 class="room-name">${room.name}</h6>
+                        <span class="room-path">${pathDisplay}</span>
+                    </div>
+                    <div class="room-containers">
+                        ${room.containers.length > 0 ? 
+                            room.containers.map(container => `<span class="container-tag">${container}</span>`).join('') :
+                            '<span class="no-containers">No containers</span>'
+                        }
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Get path depth for positioning
+        function getPathDepth(path) {
+            if (path === 'start') return 0;
+            return (path.match(/[;]/g) || []).length + 1;
+        }
+        
+        // Format path display
+        function formatPath(path) {
+            if (path === 'start') return 'START';
+            return path.split(';').join(' → ');
+        }
+        
+        // Render house inventory
+        function renderHouseInventory(inventory) {
+            const grouped = {};
+            inventory.forEach(item => {
+                const location = item.location || 'Unknown';
+                if (!grouped[location]) grouped[location] = [];
+                grouped[location].push(item);
+            });
+            
+            let html = '';
+            Object.entries(grouped).forEach(([location, items]) => {
+                html += `
+                    <div class="inventory-location">
+                        <h6 class="location-header">${location} (${items.length} items)</h6>
+                        <div class="items-grid">
+                            ${items.map(item => `
+                                <div class="item-card">
+                                    <span class="item-name">${item.item_name}</span>
+                                    ${item.quantity > 1 ? `<span class="item-quantity">(${item.quantity})</span>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            return html;
+        }
+        
+        // Load house layout data
+        async function loadHouseLayout(characterName, houseData) {
+            try {
+                // Extract the owner name from characterName (e.g., "Kaan_house" -> "Kaan")
+                const ownerName = characterName.replace('_house', '');
+                
+                // For Kaan, use the known layout. In the future, this could be served by an API endpoint
+                let houseLayoutString;
+                if (ownerName.toLowerCase() === 'kaan') {
+                    houseLayoutString = "Manse of the Macabre:start:reliquary,crate,shell|Madness Below:d:shell|Base of the Pit:d;d:crate,reliquary,shell|Alchemy Laboratory:d;d;s:shelf,rack,desk|Vault of the Elders:d;d;s;n;n:bin,box";
+                } else {
+                    // Default simple layout if no specific layout is defined
+                    houseLayoutString = `${ownerName}'s House:start:chest,container`;
+                }
+                
+                const houseLayout = parseHouseLayout(houseLayoutString);
+                
+                // Update the house data to include the proper house name
+                houseData.house_name = houseData.house_name || `${ownerName}'s House`;
+                
+                renderHouseDetails(houseData, houseLayout);
+            } catch (error) {
+                console.error('Error loading house layout:', error);
+                document.getElementById('characterDetails').innerHTML = '<div class="text-center text-danger">Error loading house layout</div>';
+            }
+        }
+
         // Load character stats
         async function loadCharacterStats() {
             try {
@@ -843,7 +1163,22 @@
             try {
                 const response = await fetch(`/api/character/${characterName}`);
                 const data = await response.json();
-                renderCharacterDetails(data);
+                
+                // Check if this is house data by looking for house_name in the data or _house suffix
+                if (data.house_name || characterName.includes("'s House") || characterName.includes("_house")) {
+                    // This is a house, render house layout
+                    document.getElementById('mainTitle').innerHTML = `
+                        <i class="fas fa-home me-2"></i>
+                        ${data.house_name || characterName}
+                    `;
+                    document.getElementById('mainSubtitle').textContent = 'House Layout and Storage';
+                    
+                    // Parse house layout from houses_v2.csv data (we'll need to load this)
+                    loadHouseLayout(characterName, data);
+                } else {
+                    // Regular character
+                    renderCharacterDetails(data);
+                }
             } catch (error) {
                 console.error('Error loading character details:', error);
                 detailsContainer.innerHTML = '<div class="text-center text-danger">Error loading character details</div>';
