@@ -62,10 +62,23 @@ A comprehensive Python-based inventory management system for Realms of Despair M
    # Edit characters.csv with your character credentials
    ```
 
-4. **Configure houses (optional)**
+4. **Configure houses (optional)** - **NOW SUPER EASY!**
+   
+   **🎯 Simple Method (Recommended):**
+   ```bash
+   # Copy the example, fill it out in plain English
+   cp house_example.txt my_house.txt
+   # Edit my_house.txt with your house info
+   # Convert to technical format automatically
+   python house_converter.py my_house.txt
+   ```
+   
+   **📖 See:** `SIMPLE_HOUSE_SETUP.md` for the easy guide
+   
+   **🔧 Advanced Method:**
    ```bash
    cp houses_v2.csv.example houses_v2.csv
-   # Edit houses_v2.csv with your house configurations
+   # Edit houses_v2.csv with technical configurations
    ```
 
 ### Usage
@@ -126,11 +139,22 @@ MyCharacter,MyPassword,Main character
 AltCharacter,AltPassword,Storage alt
 ```
 
-### House Setup (`houses_v2.csv`)
+### 🏠 House Setup - Made Simple!
+
+**🎯 New Simple Method (Recommended):**
+
+1. **Copy the example:** `cp house_example.txt my_house.txt`  
+2. **Edit in plain English:** Describe your house in natural language
+3. **Auto-convert:** `python house_converter.py my_house.txt`
+4. **Done!** No CSV editing needed
+
+**📖 Complete guide:** See `SIMPLE_HOUSE_SETUP.md` for step-by-step instructions
+
+**🔧 Advanced CSV Method (`houses_v2.csv`):**
 ```csv
 character,room_name,containers
-Kaan,North Storage,"cabinet,wardrobe,chest"
-Kaan,South Storage,"shelf,trunk"
+Kaan_house,North Storage,"cabinet,wardrobe,chest"
+Kaan_house,South Storage,"shelf,trunk"
 ```
 
 ### Container Mappings (`container_mappings.json`)

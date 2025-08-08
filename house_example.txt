@@ -1,0 +1,15 @@
+HOUSE SETUP FOR: YourCharacterName
+
+MY HOUSE NAME: Your House Name
+
+ROOMS IN MY HOUSE:
+1. Living Room (entrance room where you arrive) - has: chest, cabinet
+2. Kitchen (north of living room) - has: cupboard, pantry
+3. Bedroom (upstairs from living room) - has: wardrobe, dresser
+4. Storage (east of bedroom) - has: bag, sack, box
+
+HOW TO GET TO EACH ROOM:
+- Living Room: starting room
+- Kitchen: from Living Room, go north
+- Bedroom: from Living Room, go up
+- Storage: from Bedroom, go east
