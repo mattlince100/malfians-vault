@@ -101,9 +101,9 @@ class MUDClient:
                 "press enter" in response.lower()):
                 logger.info(f"Successfully logged in as {username}")
                 
-                # Enable ANSI colors to capture game colors
-                logger.debug("Enabling ANSI colors with 'config +ansi'")
-                await self.send_command("config +ansi", delay=2.0)
+                # Disable ANSI colors for cleaner parsing during scans
+                logger.debug("Disabling ANSI colors with 'config -ansi'")
+                await self.send_command("config -ansi", delay=2.0)
                 
                 return True
             else:
@@ -153,8 +153,9 @@ class MUDClient:
         try:
             logger.info("Logging out")
             
-            # ANSI colors are already enabled, just save configuration
-            logger.debug("ANSI colors already enabled, saving configuration")
+            # Re-enable ANSI colors before logout
+            logger.debug("Re-enabling ANSI colors with 'config +ansi'")
+            await self.send_command("config +ansi", delay=2.0)
             
             # Save character to ensure config changes persist
             logger.debug("Saving character configuration")
@@ -200,17 +201,25 @@ class MUDClient:
                     data += text
                     last_data_time = time.time()
                     
-                    # Check for common prompts (but not equipment slots)
-                    # Look for actual MUD prompt pattern with brackets and hp
+                    # Check for common prompts
+                    # Look for actual MUD prompt pattern
                     lines = data.split('\n')
-                    if len(lines) > 1 and lines[-1].strip():
-                        last_line = lines[-1].strip()
-                        # Strip ANSI codes for prompt detection
-                        last_line_clean = re.sub(r'\x1b\[[0-9;]*m', '', last_line)
-                        # Check if it's a real prompt: [Name] xxx/xxxhp
-                        if (last_line_clean.startswith('[') and '/hp' in last_line_clean.lower() and 
-                            ('HTY' in last_line_clean or 'HSY' in last_line_clean or 'HY' in last_line_clean)):
-                            break
+                    if len(lines) > 1:
+                        # Check last non-empty line
+                        for i in range(len(lines) - 1, -1, -1):
+                            line = lines[i].strip()
+                            if line:
+                                # Strip ANSI codes if present
+                                line_clean = re.sub(r'\x1b\[[0-9;]*m', '', line) if '\x1b[' in line else line
+                                # Check if it's a real prompt: [Name] xxx/xxxhp
+                                if (line_clean.startswith('[') and 'hp' in line_clean.lower() and 
+                                    ('/' in line_clean) and 
+                                    any(flag in line_clean.upper() for flag in ['HTY', 'HSY', 'HY', 'TY\\'])):
+                                    # Found a prompt at the end
+                                    break
+                                # If we found a non-prompt line, keep reading
+                                break
+                    
                     # Check for other prompts
                     if any(prompt in data.lower() for prompt in [
                         'password:', 'continue', 'press return'

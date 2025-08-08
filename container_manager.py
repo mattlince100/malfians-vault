@@ -67,8 +67,8 @@ class ContainerManager:
             # Strip ANSI codes, extra spaces, and item flags
             clean_item_name = self._strip_item_flags(item_name)
             
-            # Debug logging to see what we're working with
-            if item_name != clean_item_name:
+            # Debug logging only if significant cleaning occurred
+            if item_name and clean_item_name and len(item_name) - len(clean_item_name) > 5:
                 logger.debug(f"Cleaned item name: '{item_name}' -> '{clean_item_name}'")
             
             # Check if this item matches a known container
