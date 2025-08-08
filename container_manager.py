@@ -62,10 +62,14 @@ class ContainerManager:
         unknown_potential_containers = []
         
         for item in inventory_items:
-            item_name = item.get('item_name', '').strip()
+            item_name = item.get('item_name', '')
             
-            # Strip item flags like (Magical), (Glowing), etc. from the beginning
+            # Strip ANSI codes, extra spaces, and item flags
             clean_item_name = self._strip_item_flags(item_name)
+            
+            # Debug logging to see what we're working with
+            if item_name != clean_item_name:
+                logger.debug(f"Cleaned item name: '{item_name}' -> '{clean_item_name}'")
             
             # Check if this item matches a known container
             container_keyword = self._find_container_mapping(clean_item_name)
@@ -85,18 +89,26 @@ class ContainerManager:
     
     def _strip_item_flags(self, item_name: str) -> str:
         """
-        Strip item flags like (Magical), (Glowing), etc. from item names.
+        Strip ANSI codes, extra spaces, and item flags from item names.
         
         Args:
-            item_name: The item name possibly containing flags
+            item_name: The item name possibly containing ANSI codes and flags
             
         Returns:
-            Clean item name without flags
+            Clean item name without ANSI codes, extra spaces, or flags
         """
         import re
+        
+        # First, remove ANSI escape sequences
+        clean_name = re.sub(r'\x1b\[[0-9;]*m', '', item_name)
+        
+        # Strip leading/trailing whitespace and normalize internal spaces
+        clean_name = ' '.join(clean_name.split())
+        
         # Remove all parenthetical flags at the beginning of the item name
         # This handles (Magical), (Glowing), (Humming), (Red Aura), etc.
-        clean_name = re.sub(r'^(\([^)]+\)\s*)+', '', item_name).strip()
+        clean_name = re.sub(r'^(\([^)]+\)\s*)+', '', clean_name).strip()
+        
         return clean_name
     
     def _find_container_mapping(self, item_name: str) -> Optional[str]:
@@ -109,29 +121,49 @@ class ContainerManager:
         Returns:
             Container keyword if found, None otherwise
         """
-        # Try exact match first
-        if item_name in self.container_mappings:
-            return self.container_mappings[item_name]
+        # Normalize the item name for comparison
+        item_normalized = item_name.lower().strip()
+        
+        # Try exact match first (case-insensitive)
+        for mapping_key, container_keyword in self.container_mappings.items():
+            if mapping_key.lower() == item_normalized:
+                return container_keyword
         
         # Try with articles added
         for article in ['a ', 'an ', 'the ']:
             with_article = article + item_name
-            if with_article in self.container_mappings:
-                return self.container_mappings[with_article]
+            with_article_normalized = with_article.lower()
+            for mapping_key, container_keyword in self.container_mappings.items():
+                if mapping_key.lower() == with_article_normalized:
+                    return container_keyword
         
         # Try with articles removed (in case mapping doesn't have article)
-        item_lower = item_name.lower()
-        if item_lower.startswith(('a ', 'an ', 'the ')):
+        if item_normalized.startswith(('a ', 'an ', 'the ')):
             # Remove article and try again
-            if item_lower.startswith('a '):
+            if item_normalized.startswith('a '):
                 without_article = item_name[2:].strip()
-            elif item_lower.startswith('an '):
+            elif item_normalized.startswith('an '):
                 without_article = item_name[3:].strip()
-            elif item_lower.startswith('the '):
+            elif item_normalized.startswith('the '):
                 without_article = item_name[4:].strip()
+            else:
+                without_article = item_name
             
-            if without_article in self.container_mappings:
-                return self.container_mappings[without_article]
+            without_article_normalized = without_article.lower()
+            for mapping_key, container_keyword in self.container_mappings.items():
+                if mapping_key.lower() == without_article_normalized:
+                    return container_keyword
+        
+        # Try substring match as last resort - check if any mapping matches the cleaned item
+        # This helps with items that have variations in their names
+        for mapping_key, container_keyword in self.container_mappings.items():
+            mapping_normalized = mapping_key.lower()
+            # Check if the mapping key is contained in the item name or vice versa
+            if mapping_normalized in item_normalized or item_normalized in mapping_normalized:
+                # Verify it's a meaningful match (not just a single word match)
+                if len(mapping_normalized.split()) > 1 or len(item_normalized.split()) == 1:
+                    logger.debug(f"Substring match found: '{item_name}' matches '{mapping_key}'")
+                    return container_keyword
         
         return None
     
