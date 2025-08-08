@@ -708,6 +708,47 @@
             color: #32cd32 !important;  /* Same green as equipment */
         }
         
+        /* ANSI Color Support - Standard 16 colors */
+        .ansi-black { color: #000000; }
+        .ansi-red { color: #800000; }
+        .ansi-green { color: #008000; }
+        .ansi-yellow { color: #808000; }
+        .ansi-blue { color: #000080; }
+        .ansi-magenta { color: #800080; }
+        .ansi-cyan { color: #008080; }
+        .ansi-white { color: #c0c0c0; }
+        .ansi-bright-black { color: #808080; }
+        .ansi-bright-red { color: #ff0000; }
+        .ansi-bright-green { color: #00ff00; }
+        .ansi-bright-yellow { color: #ffff00; }
+        .ansi-bright-blue { color: #0000ff; }
+        .ansi-bright-magenta { color: #ff00ff; }
+        .ansi-bright-cyan { color: #00ffff; }
+        .ansi-bright-white { color: #ffffff; }
+        
+        /* ANSI Background Colors */
+        .ansi-bg-black { background-color: #000000; }
+        .ansi-bg-red { background-color: #800000; }
+        .ansi-bg-green { background-color: #008000; }
+        .ansi-bg-yellow { background-color: #808000; }
+        .ansi-bg-blue { background-color: #000080; }
+        .ansi-bg-magenta { background-color: #800080; }
+        .ansi-bg-cyan { background-color: #008080; }
+        .ansi-bg-white { background-color: #c0c0c0; }
+        .ansi-bg-bright-black { background-color: #808080; }
+        .ansi-bg-bright-red { background-color: #ff0000; }
+        .ansi-bg-bright-green { background-color: #00ff00; }
+        .ansi-bg-bright-yellow { background-color: #ffff00; }
+        .ansi-bg-bright-blue { background-color: #0000ff; }
+        .ansi-bg-bright-magenta { background-color: #ff00ff; }
+        .ansi-bg-bright-cyan { background-color: #00ffff; }
+        .ansi-bg-bright-white { background-color: #ffffff; }
+        
+        /* ANSI Text Styling */
+        .ansi-bold { font-weight: bold; }
+        .ansi-underline { text-decoration: underline; }
+        .ansi-italic { font-style: italic; }
+        
         /* Room containers section */
         .room-containers-section {
             margin-bottom: 2rem;
@@ -1464,11 +1505,112 @@
             return Object.values(containers).reduce((total, items) => total + items.length, 0);
         }
         
-        // Format item names with MUD-style colors
+        // Convert ANSI escape codes to HTML with CSS classes
+        function ansiToHtml(text) {
+            if (!text || typeof text !== 'string') return text;
+            
+            // ANSI color code mappings
+            const colorMap = {
+                '30': 'ansi-black', '31': 'ansi-red', '32': 'ansi-green', '33': 'ansi-yellow',
+                '34': 'ansi-blue', '35': 'ansi-magenta', '36': 'ansi-cyan', '37': 'ansi-white',
+                '90': 'ansi-bright-black', '91': 'ansi-bright-red', '92': 'ansi-bright-green',
+                '93': 'ansi-bright-yellow', '94': 'ansi-bright-blue', '95': 'ansi-bright-magenta',
+                '96': 'ansi-bright-cyan', '97': 'ansi-bright-white'
+            };
+            
+            const bgColorMap = {
+                '40': 'ansi-bg-black', '41': 'ansi-bg-red', '42': 'ansi-bg-green', '43': 'ansi-bg-yellow',
+                '44': 'ansi-bg-blue', '45': 'ansi-bg-magenta', '46': 'ansi-bg-cyan', '47': 'ansi-bg-white',
+                '100': 'ansi-bg-bright-black', '101': 'ansi-bg-bright-red', '102': 'ansi-bg-bright-green',
+                '103': 'ansi-bg-bright-yellow', '104': 'ansi-bg-bright-blue', '105': 'ansi-bg-bright-magenta',
+                '106': 'ansi-bg-bright-cyan', '107': 'ansi-bg-bright-white'
+            };
+            
+            const styleMap = {
+                '1': 'ansi-bold',
+                '3': 'ansi-italic',
+                '4': 'ansi-underline'
+            };
+            
+            let result = '';
+            let currentClasses = new Set();
+            let i = 0;
+            
+            while (i < text.length) {
+                if (text[i] === '\x1b' && text[i + 1] === '[') {
+                    // Found ANSI escape sequence
+                    let j = i + 2;
+                    while (j < text.length && text[j] !== 'm') {
+                        j++;
+                    }
+                    
+                    if (j < text.length) {
+                        const codes = text.substring(i + 2, j).split(';');
+                        
+                        for (const code of codes) {
+                            if (code === '0' || code === '') {
+                                // Reset all formatting
+                                currentClasses.clear();
+                            } else if (colorMap[code]) {
+                                // Remove any existing foreground color
+                                for (const cls of currentClasses) {
+                                    if (cls.startsWith('ansi-') && !cls.startsWith('ansi-bg-') && !cls.startsWith('ansi-bold') && !cls.startsWith('ansi-italic') && !cls.startsWith('ansi-underline')) {
+                                        currentClasses.delete(cls);
+                                    }
+                                }
+                                currentClasses.add(colorMap[code]);
+                            } else if (bgColorMap[code]) {
+                                // Remove any existing background color
+                                for (const cls of currentClasses) {
+                                    if (cls.startsWith('ansi-bg-')) {
+                                        currentClasses.delete(cls);
+                                    }
+                                }
+                                currentClasses.add(bgColorMap[code]);
+                            } else if (styleMap[code]) {
+                                currentClasses.add(styleMap[code]);
+                            }
+                        }
+                        
+                        i = j + 1;
+                    } else {
+                        result += text[i];
+                        i++;
+                    }
+                } else {
+                    // Regular character
+                    if (currentClasses.size > 0) {
+                        result += `<span class="${Array.from(currentClasses).join(' ')}">${escapeHtml(text[i])}</span>`;
+                    } else {
+                        result += escapeHtml(text[i]);
+                    }
+                    i++;
+                }
+            }
+            
+            return result;
+        }
+        
+        // Escape HTML characters
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, (m) => map[m]);
+        }
+        
+        // Format item names with ANSI colors preserved
         function formatItemName(itemName) {
-            // For now, just apply the equipment green color to all items
-            // Can be enhanced with specific colors when provided
-            return `<span class="item-mud">${itemName}</span>`;
+            // Check if item has ANSI codes and convert them
+            if (itemName && itemName.includes('\x1b[')) {
+                return ansiToHtml(itemName);
+            }
+            // Fallback to green color for items without ANSI
+            return `<span class="item-mud">${escapeHtml(itemName)}</span>`;
         }
         
         // Render house inventory from containers structure
@@ -1539,7 +1681,7 @@
                                                        onchange="toggleForSale(this)"
                                                        title="Mark for sale">
                                                 <span class="item-line-text">
-                                                    ${item.raw_line || `${item.item_name}${item.quantity > 1 ? ` (${item.quantity})` : ''}`}
+                                                    ${formatItemName(item.raw_line || `${item.item_name}${item.quantity > 1 ? ` (${item.quantity})` : ''}`)}
                                                 </span>
                                             </div>
                                         `).join('')}
@@ -1641,7 +1783,7 @@
                         <div class="items-grid">
                             ${items.map(item => `
                                 <div class="item-card">
-                                    <span class="item-name">${item.item_name}</span>
+                                    <span class="item-name">${formatItemName(item.item_name)}</span>
                                     ${item.quantity > 1 ? `<span class="item-quantity">(${item.quantity})</span>` : ''}
                                 </div>
                             `).join('')}
@@ -1911,7 +2053,7 @@
                     ${equipment.map(item => `
                         <div class="mud-line">
                             <span class="equipment-slot-mud">&lt;${item.location.replace('equipped:', '')}&gt;</span>
-                            <span class="item-text">${item.raw_line}</span>
+                            <span class="item-text">${formatItemName(item.raw_line)}</span>
                         </div>
                     `).join('')}
                 </div>
@@ -1948,7 +2090,7 @@
                     return equippedItems[slot].map(item => `
                         <div class="mud-line">
                             <span class="equipment-slot-mud">&lt;${slot}&gt;</span>
-                            <span class="item-text">${item.raw_line}</span>
+                            <span class="item-text">${formatItemName(item.raw_line)}</span>
                         </div>
                     `).join('');
                 } else {
@@ -1980,9 +2122,9 @@
                 <div class="mud-terminal">
                     ${inventory.map(item => {
                         if (item.raw_line.includes('You are carrying') && item.raw_line.includes('items')) {
-                            return `<div class="mud-header">${item.raw_line}</div>`;
+                            return `<div class="mud-header">${formatItemName(item.raw_line)}</div>`;
                         } else {
-                            return `<div class="inventory-line">${item.raw_line}</div>`;
+                            return `<div class="inventory-line">${formatItemName(item.raw_line)}</div>`;
                         }
                     }).join('')}
                 </div>
@@ -2025,7 +2167,7 @@
                             <div class="container-header">Container contents:</div>
                             ${allContainerItems.map(item => `
                                 <div class="container-line">
-                                    <span style="color: #ffff00;">[${item.container.replace('my.', '')}]</span> ${item.raw_line}
+                                    <span style="color: #ffff00;">[${item.container.replace('my.', '')}]</span> ${formatItemName(item.raw_line)}
                                 </div>
                             `).join('')}
                         </div>
@@ -2053,7 +2195,7 @@
                             <div class="mud-container">
                                 <div class="container-header">${containerName} contains:</div>
                                 ${items.map(item => `
-                                    <div class="container-line">${item.raw_line}</div>
+                                    <div class="container-line">${formatItemName(item.raw_line)}</div>
                                 `).join('')}
                             </div>
                         ` : '<div class="text-center text-muted py-3">This container is empty</div>'}

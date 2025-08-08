@@ -214,13 +214,17 @@ class InventoryViewer:
         cleaned_records = []
         
         for record in records:
-            # Clean ANSI color codes from item names
+            # Preserve ANSI color codes for web display
             item_name = record['item_name']
+            # Store raw item name with ANSI codes for display
+            record['raw_item_name'] = item_name
+            # Also keep clean name for searching/filtering
             if '\x1b[' in item_name:
-                # Remove ANSI escape sequences
                 import re
-                item_name = re.sub(r'\x1b\[[0-9;]*m', '', item_name).strip()
-                record['item_name'] = item_name
+                clean_name = re.sub(r'\x1b\[[0-9;]*m', '', item_name).strip()
+                record['clean_item_name'] = clean_name
+            else:
+                record['clean_item_name'] = item_name
             
             cleaned_records.append(record)
         
