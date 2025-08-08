@@ -182,8 +182,9 @@ class InventoryScanner:
         """Scan character statistics (class, race, gender, alignment, gold)."""
         logger.debug("Scanning character statistics")
         
-        # Use 'score' command to get character stats (no additional delay - handled by caller)
-        response = await self.mud_client.send_command("score")
+        # Use 'score' command to get character stats with extended delay for full output
+        response = await self.mud_client.send_command("score", delay=3.0)
+        logger.debug(f"Score response length: {len(response)} chars")
         logger.debug(f"Score response: {response[:500]}...")
         
         return self.parse_character_stats(response)

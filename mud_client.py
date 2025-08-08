@@ -4,6 +4,7 @@ import asyncio
 import telnetlib3
 import time
 import logging
+import re
 from typing import Optional, Tuple
 
 # Suppress telnet protocol negotiation warnings to reduce log spam
@@ -200,8 +201,19 @@ class MUDClient:
                     last_data_time = time.time()
                     
                     # Check for common prompts (but not equipment slots)
+                    # Look for actual MUD prompt pattern with brackets and hp
+                    lines = data.split('\n')
+                    if len(lines) > 1 and lines[-1].strip():
+                        last_line = lines[-1].strip()
+                        # Strip ANSI codes for prompt detection
+                        last_line_clean = re.sub(r'\x1b\[[0-9;]*m', '', last_line)
+                        # Check if it's a real prompt: [Name] xxx/xxxhp
+                        if (last_line_clean.startswith('[') and '/hp' in last_line_clean.lower() and 
+                            ('HTY' in last_line_clean or 'HSY' in last_line_clean or 'HY' in last_line_clean)):
+                            break
+                    # Check for other prompts
                     if any(prompt in data.lower() for prompt in [
-                        'hp:', 'password:', 'continue', 'press return'
+                        'password:', 'continue', 'press return'
                     ]):
                         break
                         
