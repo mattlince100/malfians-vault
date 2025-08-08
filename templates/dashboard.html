@@ -2222,9 +2222,13 @@
         }
         
         function formatScoreDisplay(stats) {
-            // If we have raw score output, parse and format it
-            if (stats.raw_score) {
-                return formatRawScore(stats.raw_score, stats);
+            // If we have raw score output with meaningful content, parse and format it
+            if (stats.raw_score && stats.raw_score.length > 100) {
+                // Only use raw score if it has substantial content
+                const rawFormatted = formatRawScore(stats.raw_score, stats);
+                if (rawFormatted) {
+                    return rawFormatted;
+                }
             }
             
             // Otherwise, create a formatted display from parsed stats
@@ -2286,6 +2290,12 @@
         }
         
         function formatRawScore(rawScore, stats) {
+            // Check if raw score is valid
+            if (!rawScore || typeof rawScore !== 'string' || rawScore.length < 50) {
+                // Return empty - will be handled by formatScoreDisplay
+                return null;
+            }
+            
             // Parse and format the raw score output with ANSI colors
             let formatted = '<div class="score-content raw-score" style="line-height: 1.2;">';
             
