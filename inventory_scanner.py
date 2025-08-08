@@ -592,9 +592,11 @@ class InventoryScanner:
                 (line_clean.startswith('[') and 'hp' in line_clean.lower())):
                 break
                 
-            # Parse equipment slot lines
-            if found_header and line.startswith('<') and '>' in line:
-                match = re.match(r'^<(.+?)>\s*(.+)$', line)
+            # Parse equipment slot lines - handle ANSI codes
+            if found_header and '<' in line and '>' in line:
+                # Strip ANSI codes first, then match equipment pattern
+                clean_line = re.sub(r'\x1b\[[0-9;]*m', '', line)
+                match = re.match(r'^<(.+?)>\s*(.+)$', clean_line)
                 if match:
                     slot = match.group(1)
                     item_text = match.group(2).strip()
@@ -609,7 +611,9 @@ class InventoryScanner:
                         item_key = f"{slot}:{item_text}"
                         if item_key not in seen_items:
                             seen_items.add(item_key)
-                            item = self.parse_item_line(item_text, f"equipped:{slot}")
+                            # Use original line to preserve ANSI codes for item parsing
+                            original_item_text = line[line.find('>') + 1:].strip()
+                            item = self.parse_item_line(original_item_text, f"equipped:{slot}")
                             if item:
                                 items.append(item)
         

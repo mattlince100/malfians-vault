@@ -709,23 +709,35 @@
             color: #32cd32 !important;  /* Same green as equipment */
         }
         
-        /* ANSI Color Support - Standard 16 colors */
-        .ansi-black { color: #000000; }
-        .ansi-red { color: #800000; }
-        .ansi-green { color: #008000; }
-        .ansi-yellow { color: #808000; }
-        .ansi-blue { color: #000080; }
-        .ansi-magenta { color: #800080; }
-        .ansi-cyan { color: #008080; }
-        .ansi-white { color: #c0c0c0; }
-        .ansi-bright-black { color: #808080; }
-        .ansi-bright-red { color: #ff0000; }
-        .ansi-bright-green { color: #00ff00; }
-        .ansi-bright-yellow { color: #ffff00; }
-        .ansi-bright-blue { color: #0000ff; }
-        .ansi-bright-magenta { color: #ff00ff; }
-        .ansi-bright-cyan { color: #00ffff; }
-        .ansi-bright-white { color: #ffffff; }
+        /* ANSI Color Support - MUD-specific colors */
+        .ansi-0 { color: #000000; } /* Black */
+        .ansi-1 { color: #800000; } /* Dark Red */
+        .ansi-2 { color: #008000; } /* Dark Green */
+        .ansi-3 { color: #808000; } /* Dark Yellow */
+        .ansi-4 { color: #000080; } /* Dark Blue */
+        .ansi-5 { color: #800080; } /* Dark Magenta */
+        .ansi-6 { color: #008080; } /* Dark Cyan */
+        .ansi-7 { color: #c0c0c0; } /* Light Gray */
+        
+        /* Bright colors (with bold flag) */
+        .ansi-bold.ansi-0 { color: #808080; } /* Bright Black (Gray) */
+        .ansi-bold.ansi-1 { color: #ff0000; } /* Bright Red */
+        .ansi-bold.ansi-2 { color: #00ff00; } /* Bright Green */
+        .ansi-bold.ansi-3 { color: #ffff00; } /* Bright Yellow */
+        .ansi-bold.ansi-4 { color: #0000ff; } /* Bright Blue */
+        .ansi-bold.ansi-5 { color: #ff00ff; } /* Bright Magenta */
+        .ansi-bold.ansi-6 { color: #00ffff; } /* Bright Cyan */
+        .ansi-bold.ansi-7 { color: #ffffff; } /* Bright White */
+        
+        /* High intensity colors (90-97) */
+        .ansi-90 { color: #808080; } /* Bright Black */
+        .ansi-91 { color: #ff0000; } /* Bright Red */
+        .ansi-92 { color: #00ff00; } /* Bright Green */
+        .ansi-93 { color: #ffff00; } /* Bright Yellow */
+        .ansi-94 { color: #0000ff; } /* Bright Blue */
+        .ansi-95 { color: #ff00ff; } /* Bright Magenta */
+        .ansi-96 { color: #00ffff; } /* Bright Cyan */
+        .ansi-97 { color: #ffffff; } /* Bright White */
         
         /* ANSI Background Colors */
         .ansi-bg-black { background-color: #000000; }
@@ -924,6 +936,62 @@
             white-space: pre;
             font-size: 13px;
         }
+
+        /* ANSI Color Classes for MUD Display - Optimized for Dark Background */
+        /* Standard ANSI Colors (30-37) */
+        .ansi-black { color: #808080; } /* Made lighter for visibility */
+        .ansi-red { color: #ff6b6b; } /* Brighter red */
+        .ansi-green { color: #4ecdc4; } /* Bright teal-green */
+        .ansi-yellow { color: #ffe066; } /* Bright yellow */
+        .ansi-blue { color: #74b9ff; } /* Bright blue */
+        .ansi-magenta { color: #fd79a8; } /* Bright pink */
+        .ansi-cyan { color: #81ecec; } /* Bright cyan */
+        .ansi-white { color: #ddd; } /* Light gray */
+        
+        /* Bright ANSI Colors (90-97) */
+        .ansi-bright-black { color: #999; } /* Medium gray */
+        .ansi-bright-red { color: #ff7675; } /* Very bright red */
+        .ansi-bright-green { color: #00b894; } /* Very bright green */
+        .ansi-bright-yellow { color: #fdcb6e; } /* Very bright yellow */
+        .ansi-bright-blue { color: #6c5ce7; } /* Very bright blue */
+        .ansi-bright-magenta { color: #a29bfe; } /* Very bright magenta */
+        .ansi-bright-cyan { color: #00cec9; } /* Very bright cyan */
+        .ansi-bright-white { color: #ffffff; } /* Pure white */
+        
+        /* Background Colors (40-47) */
+        .ansi-bg-black { background-color: #000000; }
+        .ansi-bg-red { background-color: #800000; }
+        .ansi-bg-green { background-color: #008000; }
+        .ansi-bg-yellow { background-color: #808000; }
+        .ansi-bg-blue { background-color: #000080; }
+        .ansi-bg-magenta { background-color: #800080; }
+        .ansi-bg-cyan { background-color: #008080; }
+        .ansi-bg-white { background-color: #c0c0c0; }
+        
+        /* Bright Background Colors (100-107) */
+        .ansi-bg-bright-black { background-color: #808080; }
+        .ansi-bg-bright-red { background-color: #ff0000; }
+        .ansi-bg-bright-green { background-color: #00ff00; }
+        .ansi-bg-bright-yellow { background-color: #ffff00; }
+        .ansi-bg-bright-blue { background-color: #0000ff; }
+        .ansi-bg-bright-magenta { background-color: #ff00ff; }
+        .ansi-bg-bright-cyan { background-color: #00ffff; }
+        .ansi-bg-bright-white { background-color: #ffffff; }
+        
+        /* Style Attributes */
+        .ansi-bold { font-weight: bold; }
+        .ansi-italic { font-style: italic; }
+        .ansi-underline { text-decoration: underline; }
+        
+        /* MUD-specific combinations - bold versions have brighter colors */
+        .ansi-bold.ansi-black { color: #999; } /* Bold black = gray */
+        .ansi-bold.ansi-red { color: #ff4757; } /* Bold red = bright red */
+        .ansi-bold.ansi-green { color: #2ed573; } /* Bold green = bright green (Redryx example) */
+        .ansi-bold.ansi-yellow { color: #ffa502; } /* Bold yellow = bright yellow */
+        .ansi-bold.ansi-blue { color: #3742fa; } /* Bold blue = bright blue */
+        .ansi-bold.ansi-magenta { color: #ff3838; } /* Bold magenta = bright magenta */
+        .ansi-bold.ansi-cyan { color: #7bed9f; } /* Bold cyan = bright cyan */
+        .ansi-bold.ansi-white { color: #ffffff; } /* Bold white = pure white */
 
         /* Class color coding */
         .class-mage { color: #00FFFF; } /* Cyan */
@@ -1516,10 +1584,11 @@
         }
         
         // Convert ANSI escape codes to HTML with CSS classes
+        // Enhanced to properly handle MUD-specific patterns like [0;1;32m
         function ansiToHtml(text) {
             if (!text || typeof text !== 'string') return text;
             
-            // ANSI color code mappings
+            // ANSI color code mappings (30-37, 90-97)
             const colorMap = {
                 '30': 'ansi-black', '31': 'ansi-red', '32': 'ansi-green', '33': 'ansi-yellow',
                 '34': 'ansi-blue', '35': 'ansi-magenta', '36': 'ansi-cyan', '37': 'ansi-white',
@@ -1528,6 +1597,7 @@
                 '96': 'ansi-bright-cyan', '97': 'ansi-bright-white'
             };
             
+            // Background color mappings (40-47, 100-107)
             const bgColorMap = {
                 '40': 'ansi-bg-black', '41': 'ansi-bg-red', '42': 'ansi-bg-green', '43': 'ansi-bg-yellow',
                 '44': 'ansi-bg-blue', '45': 'ansi-bg-magenta', '46': 'ansi-bg-cyan', '47': 'ansi-bg-white',
@@ -1536,10 +1606,14 @@
                 '106': 'ansi-bg-bright-cyan', '107': 'ansi-bg-bright-white'
             };
             
+            // Style mappings
             const styleMap = {
                 '1': 'ansi-bold',
+                '2': 'ansi-dim',       // Not commonly used but valid
                 '3': 'ansi-italic',
-                '4': 'ansi-underline'
+                '4': 'ansi-underline',
+                '5': 'ansi-blink',     // Not commonly used but valid
+                '7': 'ansi-reverse'    // Not commonly used but valid
             };
             
             let result = '';
@@ -1548,55 +1622,106 @@
             
             while (i < text.length) {
                 if (text[i] === '\x1b' && text[i + 1] === '[') {
-                    // Found ANSI escape sequence
+                    // Found ANSI escape sequence \x1b[
                     let j = i + 2;
                     while (j < text.length && text[j] !== 'm') {
                         j++;
                     }
                     
                     if (j < text.length) {
-                        const codes = text.substring(i + 2, j).split(';');
+                        // Parse the codes between [ and m
+                        const codeString = text.substring(i + 2, j);
+                        const codes = codeString.split(';');
                         
+                        // Process each code in the sequence
                         for (const code of codes) {
-                            if (code === '0' || code === '') {
-                                // Reset all formatting
+                            const trimmedCode = code.trim();
+                            
+                            if (trimmedCode === '0' || trimmedCode === '') {
+                                // Reset all formatting (code 0 or empty)
                                 currentClasses.clear();
-                            } else if (colorMap[code]) {
-                                // Remove any existing foreground color
+                            } else if (colorMap[trimmedCode]) {
+                                // Foreground color - remove any existing foreground color first
+                                const toRemove = [];
                                 for (const cls of currentClasses) {
-                                    if (cls.startsWith('ansi-') && !cls.startsWith('ansi-bg-') && !cls.startsWith('ansi-bold') && !cls.startsWith('ansi-italic') && !cls.startsWith('ansi-underline')) {
-                                        currentClasses.delete(cls);
+                                    if (cls.startsWith('ansi-') && 
+                                        !cls.startsWith('ansi-bg-') && 
+                                        !cls.startsWith('ansi-bold') && 
+                                        !cls.startsWith('ansi-italic') && 
+                                        !cls.startsWith('ansi-underline') &&
+                                        !cls.startsWith('ansi-dim') &&
+                                        !cls.startsWith('ansi-blink') &&
+                                        !cls.startsWith('ansi-reverse')) {
+                                        toRemove.push(cls);
                                     }
                                 }
-                                currentClasses.add(colorMap[code]);
-                            } else if (bgColorMap[code]) {
-                                // Remove any existing background color
+                                toRemove.forEach(cls => currentClasses.delete(cls));
+                                currentClasses.add(colorMap[trimmedCode]);
+                            } else if (bgColorMap[trimmedCode]) {
+                                // Background color - remove any existing background color first
+                                const toRemove = [];
                                 for (const cls of currentClasses) {
                                     if (cls.startsWith('ansi-bg-')) {
-                                        currentClasses.delete(cls);
+                                        toRemove.push(cls);
                                     }
                                 }
-                                currentClasses.add(bgColorMap[code]);
-                            } else if (styleMap[code]) {
-                                currentClasses.add(styleMap[code]);
+                                toRemove.forEach(cls => currentClasses.delete(cls));
+                                currentClasses.add(bgColorMap[trimmedCode]);
+                            } else if (styleMap[trimmedCode]) {
+                                // Style attribute (bold, italic, etc.)
+                                currentClasses.add(styleMap[trimmedCode]);
                             }
+                            // Ignore unknown codes silently
                         }
                         
-                        i = j + 1;
+                        i = j + 1; // Move past the 'm'
                     } else {
-                        result += text[i];
+                        // Malformed escape sequence, treat as regular character
+                        result += escapeHtml(text[i]);
                         i++;
                     }
                 } else {
-                    // Regular character
-                    if (currentClasses.size > 0) {
-                        result += `<span class="${Array.from(currentClasses).join(' ')}">${escapeHtml(text[i])}</span>`;
-                    } else {
-                        result += escapeHtml(text[i]);
+                    // Regular character - collect consecutive chars with same formatting
+                    let textRun = '';
+                    const currentClassString = Array.from(currentClasses).join(' ');
+                    
+                    // Collect all consecutive characters that have the same formatting
+                    while (i < text.length && 
+                           !(text[i] === '\x1b' && text[i + 1] === '[')) {
+                        textRun += text[i];
+                        i++;
                     }
-                    i++;
+                    
+                    // Apply formatting to the entire text run
+                    if (currentClasses.size > 0) {
+                        result += `<span class="${currentClassString}">${escapeHtml(textRun)}</span>`;
+                    } else {
+                        result += escapeHtml(textRun);
+                    }
                 }
             }
+            
+            return result;
+        }
+        
+        // Test ANSI processing with debug logging
+        function testAnsiProcessing() {
+            // Test the Redryx example pattern [0;1;32m
+            const testString = '\x1b[0;1;32mRedryx\x1b[0m';
+            const result = ansiToHtml(testString);
+            console.log('ANSI Test:', {
+                input: testString,
+                output: result,
+                expectedClasses: ['ansi-bold', 'ansi-green']
+            });
+            
+            // Test a real line from Abygale's score
+            const realLine = '\x1b[1mLEVEL: \x1b[0;37m50          \x1b[1;32mRace : \x1b[0;37mHalf-elf';
+            const realResult = ansiToHtml(realLine);
+            console.log('Real ANSI Test:', {
+                input: realLine,
+                output: realResult
+            });
             
             return result;
         }
@@ -1615,8 +1740,15 @@
         
         // Format item names with ANSI colors preserved
         function formatItemName(itemName) {
+            if (!itemName) return '';
+            
+            // Convert literal \x1b back to actual escape characters if needed
+            if (itemName.includes('\\x1b')) {
+                itemName = itemName.replace(/\\x1b/g, '\x1b');
+            }
+            
             // Check if item has ANSI codes and convert them
-            if (itemName && itemName.includes('\x1b[')) {
+            if (itemName.includes('\x1b[')) {
                 return ansiToHtml(itemName);
             }
             // Fallback to green color for items without ANSI
@@ -1842,6 +1974,11 @@
                 characters.forEach(char => {
                     const stat = stats.find(s => s.character.toLowerCase() === char.toLowerCase());
                     if (stat) {
+                        console.log('Loading character stats for', char, {
+                            hasRawScore: !!stat.raw_score,
+                            rawScoreLength: stat.raw_score ? stat.raw_score.length : 0,
+                            rawScoreType: typeof stat.raw_score
+                        });
                         characterData[char] = stat;
                     } else {
                         characterData[char] = {
@@ -1968,7 +2105,23 @@
                     loadHouseLayout(characterName, data);
                 } else {
                     console.log('Detected as character, rendering character details');
-                    // Regular character
+                    // Regular character - make sure we have character stats first
+                    if (!characterData[characterName] || !characterData[characterName].raw_score) {
+                        console.log('Loading character stats before rendering details');
+                        // Load character stats if not already loaded
+                        const statsResponse = await fetch('/api/character-stats');
+                        const allStats = await statsResponse.json();
+                        const charStats = allStats.find(s => s.character.toLowerCase() === characterName.toLowerCase()) || {};
+                        
+                        console.log('selectCharacter: Loaded character stats', {
+                            character: characterName,
+                            hasRawScore: !!charStats.raw_score,
+                            rawScoreLength: charStats.raw_score ? charStats.raw_score.length : 0
+                        });
+                        
+                        characterData[characterName] = charStats;
+                    }
+                    
                     renderCharacterDetails(data);
                 }
             } catch (error) {
@@ -1981,6 +2134,12 @@
         function renderCharacterDetails(data) {
             // Get character stats from our loaded data
             const stats = characterData[data.character] || {};
+            console.log('renderCharacterDetails: Retrieved stats for', data.character, {
+                hasStats: Object.keys(stats).length > 0,
+                hasRawScore: !!stats.raw_score,
+                rawScoreLength: stats.raw_score ? stats.raw_score.length : 0,
+                statsKeys: Object.keys(stats)
+            });
             // Ensure character name is in stats
             stats.character = data.character;
             
@@ -2074,6 +2233,13 @@
 
         // Render equipment
         function renderEquipment(equipment) {
+            console.log('renderEquipment called with:', {
+                hasEquipment: !!equipment,
+                equipmentLength: equipment ? equipment.length : 0,
+                equipmentType: typeof equipment,
+                sampleItems: equipment ? equipment.slice(0, 3) : null
+            });
+            
             // Define all equipment slots in order
             const allSlots = [
                 'used as light', 'worn on finger', 'worn around neck', 'worn on body', 
@@ -2087,24 +2253,47 @@
             const equippedItems = {};
             if (equipment) {
                 equipment.forEach(item => {
+                    console.log('Processing equipment item:', {
+                        location: item.location,
+                        item_name: item.item_name,
+                        raw_line: item.raw_line
+                    });
                     const slot = item.location.replace('equipped:', '');
+                    console.log('Extracted slot:', slot);
                     if (!equippedItems[slot]) {
                         equippedItems[slot] = [];
                     }
                     equippedItems[slot].push(item);
                 });
+                console.log('Final equippedItems map:', equippedItems);
             }
             
             // Generate display with all slots, showing [nothing] for empty ones
             const equipmentLines = allSlots.map(slot => {
-                if (equippedItems[slot] && equippedItems[slot].length > 0) {
+                const hasItems = equippedItems[slot] && equippedItems[slot].length > 0;
+                if (slot === 'worn about body') {
+                    console.log('Processing worn about body slot:', {
+                        slot: slot,
+                        hasItems: hasItems,
+                        itemCount: equippedItems[slot] ? equippedItems[slot].length : 0,
+                        items: equippedItems[slot]
+                    });
+                }
+                
+                if (hasItems) {
                     // Show all items in this slot (some slots can have multiple items)
-                    return equippedItems[slot].map(item => `
+                    const renderedItems = equippedItems[slot].map(item => `
                         <div class="mud-line">
                             <span class="equipment-slot-mud">&lt;${slot}&gt;</span>
                             <span class="item-text">${formatItemName(item.raw_line)}</span>
                         </div>
                     `).join('');
+                    
+                    if (slot === 'worn about body') {
+                        console.log('Rendered items for worn about body:', renderedItems.substring(0, 200));
+                    }
+                    
+                    return renderedItems;
                 } else {
                     // Show empty slot
                     return `
@@ -2222,13 +2411,27 @@
         }
         
         function formatScoreDisplay(stats) {
+            console.log('formatScoreDisplay called with stats:', {
+                character: stats.character,
+                hasRawScore: !!stats.raw_score,
+                rawScoreLength: stats.raw_score ? stats.raw_score.length : 0,
+                rawScoreType: typeof stats.raw_score,
+                rawScoreSample: stats.raw_score ? stats.raw_score.substring(0, 100) : null
+            });
+            
             // If we have raw score output with meaningful content, parse and format it
             if (stats.raw_score && stats.raw_score.length > 100) {
+                console.log('formatScoreDisplay: Using raw score path');
                 // Only use raw score if it has substantial content
                 const rawFormatted = formatRawScore(stats.raw_score, stats);
                 if (rawFormatted) {
+                    console.log('formatScoreDisplay: Raw score formatted successfully');
                     return rawFormatted;
+                } else {
+                    console.log('formatScoreDisplay: Raw score formatting failed, falling back');
                 }
+            } else {
+                console.log('formatScoreDisplay: Raw score not available or too short, using fallback');
             }
             
             // Otherwise, create a formatted display from parsed stats
@@ -2292,17 +2495,26 @@
         function formatRawScore(rawScore, stats) {
             // Check if raw score is valid
             if (!rawScore || typeof rawScore !== 'string' || rawScore.length < 50) {
-                // Return empty - will be handled by formatScoreDisplay
+                console.log('formatRawScore: Invalid raw score', { rawScore: rawScore ? rawScore.substring(0, 100) : null, type: typeof rawScore, length: rawScore ? rawScore.length : 0 });
                 return null;
             }
+            
+            // Convert literal \x1b back to actual escape characters for processing
+            if (rawScore.includes('\\x1b')) {
+                rawScore = rawScore.replace(/\\x1b/g, '\x1b');
+                console.log('formatRawScore: Converted literal escape sequences back to actual escape chars');
+            }
+            
+            console.log('formatRawScore: Processing raw score', { length: rawScore.length, sample: rawScore.substring(0, 200) });
             
             // Parse and format the raw score output with ANSI colors
             let formatted = '<div class="score-content raw-score" style="line-height: 1.2;">';
             
             // Split by lines and process each
             const lines = rawScore.split('\n');
+            console.log('formatRawScore: Split into', lines.length, 'lines');
             
-            lines.forEach(line => {
+            lines.forEach((line, index) => {
                 // Check for prompts before processing ANSI
                 const lineClean = line.replace(/\x1b\[[0-9;]*m/g, '').trim();
                 
@@ -2311,10 +2523,17 @@
                     return;
                 }
                 
+                // Debug first few lines
+                if (index < 5) {
+                    console.log('formatRawScore: Processing line', index, { original: line.substring(0, 100), clean: lineClean.substring(0, 100) });
+                }
+                
                 // Format different types of score lines with ANSI color preservation
                 if (lineClean.includes('Score for')) {
                     // Header line
-                    formatted += `<div class="score-header">${ansiToHtml(line)}</div>`;
+                    const processed = ansiToHtml(line);
+                    console.log('formatRawScore: Score header', { original: line.substring(0, 50), processed: processed.substring(0, 100) });
+                    formatted += `<div class="score-header">${processed}</div>`;
                 } else if (lineClean.includes('LEVEL:') && lineClean.includes('Race')) {
                     // LEVEL: 50          Race : Half-orc
                     formatted += `<div class="score-row">${ansiToHtml(line)}</div>`;
@@ -2339,7 +2558,13 @@
                 } else if (lineClean.includes('STR') || lineClean.includes('INT') || lineClean.includes('WIS') || 
                           lineClean.includes('DEX') || lineClean.includes('CON') || lineClean.includes('CHA')) {
                     // Stats lines like: STR  : 21(18)      INT  : 17(17)
-                    formatted += `<div class="score-row stats-row">${ansiToHtml(line)}</div>`;
+                    const processedLine = ansiToHtml(line);
+                    console.log('formatRawScore: Processing STR line', { 
+                        original: line.substring(0, 100), 
+                        processed: processedLine.substring(0, 150),
+                        hasAnsi: line.includes('\x1b[')
+                    });
+                    formatted += `<div class="score-row stats-row">${processedLine}</div>`;
                 } else if (line.trim()) {
                     // Any other non-empty line
                     formatted += `<div class="score-row">${ansiToHtml(line)}</div>`;
@@ -2347,6 +2572,7 @@
             });
             
             formatted += '</div>';
+            console.log('formatRawScore: Final formatted length', formatted.length);
             return formatted;
         }
         
@@ -2427,6 +2653,10 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
+            // Test ANSI processing system
+            console.log('Testing ANSI processing system...');
+            testAnsiProcessing();
+            
             const charParam = getUrlParameter('char');
             
             if (charParam) {
@@ -2512,6 +2742,12 @@
                     const data = await response.json();
                     
                     // Store character data for rendering
+                    console.log('loadCharacterDirectly: Storing character stats for', characterName, {
+                        hasRawScore: !!charStats.raw_score,
+                        rawScoreLength: charStats.raw_score ? charStats.raw_score.length : 0,
+                        rawScoreType: typeof charStats.raw_score,
+                        rawScoreSample: charStats.raw_score ? charStats.raw_score.substring(0, 100) : null
+                    });
                     characterData[characterName] = charStats;
                     
                     renderCharacterDetails(data);

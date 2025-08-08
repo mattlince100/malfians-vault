@@ -65,8 +65,19 @@ class InventoryViewer:
         stats_files = glob.glob("character_stats_*.csv")
         if stats_files:
             latest_stats_file = max(stats_files, key=os.path.getctime)
-            self.stats_df = pd.read_csv(latest_stats_file)
+            # Read CSV with proper handling of escape sequences
+            self.stats_df = pd.read_csv(latest_stats_file, encoding='utf-8', escapechar=None)
             print(f"Loaded character stats from: {latest_stats_file}")
+            
+            # Debug: Check if ANSI codes survive CSV loading
+            abygale_row = self.stats_df[self.stats_df['character'] == 'Abygale']
+            if not abygale_row.empty and 'raw_score' in abygale_row.columns:
+                raw_score = str(abygale_row['raw_score'].iloc[0])
+                escape_char = chr(27)
+                literal_pattern = '\\x1b'
+                print(f"Debug CSV loading: Abygale raw_score has actual escape char: {escape_char in raw_score}")
+                print(f"Debug CSV loading: Abygale raw_score has \\x1b pattern: {literal_pattern in raw_score}")
+                print(f"Debug CSV loading: First 100 chars: {repr(raw_score[:100])}")
         else:
             print("No character stats files found")
             self.stats_df = pd.DataFrame()
@@ -128,8 +139,20 @@ class InventoryViewer:
             
             processed_stats.append(stat)
         
+        # Preserve ANSI codes by converting escape chars to safe JSON format
+        for stat in processed_stats:
+            if 'raw_score' in stat and stat['raw_score']:
+                # Convert actual escape characters to literal \x1b for JSON safety
+                raw_score = str(stat['raw_score'])
+                if chr(27) in raw_score:  # Has actual escape characters
+                    # Replace actual escape chars with literal \x1b for JSON serialization
+                    safe_raw_score = raw_score.replace(chr(27), '\\x1b')
+                    stat['raw_score'] = safe_raw_score
+                    
         # Clean NaN values before returning
-        return self.clean_nan_values(processed_stats)
+        cleaned_stats = self.clean_nan_values(processed_stats)
+                
+        return cleaned_stats
     
     def get_character_data(self, character_name):
         """Get all data for a specific character."""
@@ -231,12 +254,23 @@ class InventoryViewer:
         for record in records:
             # Preserve ANSI color codes for web display
             item_name = record['item_name']
+            raw_line = record.get('raw_line', '')
+            
+            # Convert actual escape characters to literal \x1b for JSON safety
+            if chr(27) in str(item_name):
+                item_name = str(item_name).replace(chr(27), '\\x1b')
+                record['item_name'] = item_name
+            
+            if chr(27) in str(raw_line):
+                raw_line = str(raw_line).replace(chr(27), '\\x1b')
+                record['raw_line'] = raw_line
+            
             # Store raw item name with ANSI codes for display
             record['raw_item_name'] = item_name
             # Also keep clean name for searching/filtering
-            if '\x1b[' in item_name:
+            if '\\x1b[' in item_name:
                 import re
-                clean_name = re.sub(r'\x1b\[[0-9;]*m', '', item_name).strip()
+                clean_name = re.sub(r'\\x1b\\[[0-9;]*m', '', item_name).strip()
                 record['clean_item_name'] = clean_name
             else:
                 record['clean_item_name'] = item_name
