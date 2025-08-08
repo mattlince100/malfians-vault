@@ -101,9 +101,9 @@ class MUDClient:
                 "press enter" in response.lower()):
                 logger.info(f"Successfully logged in as {username}")
                 
-                # Disable ANSI colors for cleaner parsing during scans
-                logger.debug("Disabling ANSI colors with 'config -ansi'")
-                await self.send_command("config -ansi", delay=2.0)
+                # Enable ANSI colors to capture equipment/inventory colors
+                logger.debug("Enabling ANSI colors with 'config +ansi'")
+                await self.send_command("config +ansi", delay=2.0)
                 
                 return True
             else:

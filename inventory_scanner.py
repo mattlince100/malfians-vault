@@ -300,7 +300,7 @@ class InventoryScanner:
     
     def parse_character_stats(self, score_response: str) -> Dict:
         """Parse character statistics from detailed score response."""
-        # Clean ANSI codes from the raw score response
+        # Clean ANSI codes only for parsing, but preserve original for display
         import re
         clean_score = re.sub(r'\x1b\[[0-9;]*m', '', score_response) if score_response else ''
         
@@ -330,7 +330,7 @@ class InventoryScanner:
             'sect_role': '-',
             'order': '-',
             'order_role': '-',
-            'raw_score': clean_score  # Save the cleaned score output
+            'raw_score': score_response  # Save the original with ANSI for display
         }
         
         # Parse cleaned score response for the detailed MUD format  
