@@ -300,6 +300,10 @@ class InventoryScanner:
     
     def parse_character_stats(self, score_response: str) -> Dict:
         """Parse character statistics from detailed score response."""
+        # Clean ANSI codes from the raw score response
+        import re
+        clean_score = re.sub(r'\x1b\[[0-9;]*m', '', score_response) if score_response else ''
+        
         stats = {
             'character': self.current_character,
             'class': 'Unknown',
@@ -326,11 +330,11 @@ class InventoryScanner:
             'sect_role': '-',
             'order': '-',
             'order_role': '-',
-            'raw_score': score_response  # Save the raw score output
+            'raw_score': clean_score  # Save the cleaned score output
         }
         
-        # Parse score response for the detailed MUD format
-        lines = score_response.split('\n')
+        # Parse cleaned score response for the detailed MUD format  
+        lines = clean_score.split('\n')
         for line in lines:
             line = line.strip()
             if not line:
@@ -367,9 +371,18 @@ class InventoryScanner:
                     
             # Look for Align line: "DEX  : 21(14)      Align: +1000, devout"
             if 'Align:' in line:
-                align_match = re.search(r'Align:\s*([^\n]+)', line)
+                align_match = re.search(r'Align:\s*([\+\-]?\d+,?\s*\w+)', line)
                 if align_match:
                     stats['alignment'] = align_match.group(1).strip()
+                else:
+                    # Fallback to capture anything after Align:
+                    fallback_match = re.search(r'Align:\s*([^\n\r]+)', line)
+                    if fallback_match:
+                        align_text = fallback_match.group(1).strip()
+                        # Clean up common issues
+                        if 'Played:' in align_text:
+                            align_text = align_text.split('Played:')[0].strip()
+                        stats['alignment'] = align_text
                     
             # Look for Gold line: "Gold : 17,737,804"
             if line.startswith('Gold :') or 'Gold :' in line:
