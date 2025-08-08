@@ -22,7 +22,9 @@
       "Bash(curl:*)",
       "Bash(pkill:*)",
       "Bash(true)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(find:*)",
+      "Bash(dir:*)"
     ],
     "deny": []
   }

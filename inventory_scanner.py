@@ -472,13 +472,20 @@ class InventoryScanner:
                 continue
                 
             # Stop at next prompt or new command
-            if (line.endswith('HTY\\') or 
-                line.endswith('>') or 
-                (line.startswith('[') and 'hp' in line)):
+            # Strip ANSI codes for prompt detection
+            line_clean = re.sub(r'\x1b\[[0-9;]*m', '', line)
+            if (line_clean.endswith('HTY\\') or 
+                line_clean.endswith('>') or 
+                (line_clean.startswith('[') and 'hp' in line_clean.lower())):
                 break
                 
             # Parse items if we're in contents section
             if in_contents and line:
+                # Skip lines that look like prompts (even with ANSI codes)
+                if ('/hp' in line_clean.lower() or 
+                    'mn' in line_clean.lower() and '/' in line_clean):
+                    continue
+                    
                 # Only add if we haven't seen this exact item line before
                 if line not in seen_items:
                     seen_items.add(line)
@@ -509,13 +516,20 @@ class InventoryScanner:
                 continue
                 
             # Stop at next prompt or new command
-            if (line.endswith('HTY\\') or 
-                line.endswith('>') or 
-                (line.startswith('[') and 'hp' in line)):
+            # Strip ANSI codes for prompt detection
+            line_clean = re.sub(r'\x1b\[[0-9;]*m', '', line)
+            if (line_clean.endswith('HTY\\') or 
+                line_clean.endswith('>') or 
+                (line_clean.startswith('[') and 'hp' in line_clean.lower())):
                 break
                 
             # Parse items if we found the header
             if found_header and line:
+                # Skip lines that look like prompts (even with ANSI codes)
+                if ('/hp' in line_clean.lower() or 
+                    'mn' in line_clean.lower() and '/' in line_clean):
+                    continue
+                    
                 # Only add if we haven't seen this exact item line before
                 if line not in seen_items:
                     seen_items.add(line)
@@ -557,9 +571,11 @@ class InventoryScanner:
                 continue
                 
             # Stop at next prompt or new command
-            if (line.endswith('HTY\\') or 
-                line.endswith('>') or 
-                (line.startswith('[') and 'hp' in line)):
+            # Strip ANSI codes for prompt detection
+            line_clean = re.sub(r'\x1b\[[0-9;]*m', '', line)
+            if (line_clean.endswith('HTY\\') or 
+                line_clean.endswith('>') or 
+                (line_clean.startswith('[') and 'hp' in line_clean.lower())):
                 break
                 
             # Parse equipment slot lines
