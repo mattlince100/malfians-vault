@@ -512,7 +512,7 @@
                         characterDisplay = `
                             <div class="character-list-container">
                                 <span class="character-summary">Held by ${totalCharacters} characters</span>
-                                <button class="btn btn-sm btn-link expand-btn" onclick="toggleCharacterList('${itemId}')">
+                                <button class="btn btn-sm btn-link expand-btn" data-toggle-id="${itemId}">
                                     <i class="fas fa-chevron-down"></i>
                                 </button>
                                 <div id="${itemId}" class="character-list-expanded" style="display: none;">
@@ -533,7 +533,7 @@
                                 ${firstThree.map(([char, count]) => 
                                     `<span class="character-pill">${char.charAt(0).toUpperCase() + char.slice(1)} (${count})</span>`
                                 ).join('')}
-                                <button class="btn btn-sm btn-link expand-btn" onclick="toggleCharacterList('${itemId}')">
+                                <button class="btn btn-sm btn-link expand-btn" data-toggle-id="${itemId}">
                                     +${remaining.length} more
                                 </button>
                                 <div id="${itemId}" class="character-list-expanded" style="display: none;">
@@ -652,6 +652,36 @@
 
         // Filter handlers
         document.addEventListener('DOMContentLoaded', function() {
+            // Safe event delegation for toggle buttons (prevents XSS)
+            document.addEventListener('click', function(e) {
+                const button = e.target.closest('[data-toggle-id]');
+                if (button) {
+                    e.preventDefault();
+                    const itemId = button.dataset.toggleId;
+                    const expandedDiv = document.getElementById(itemId);
+                    
+                    if (expandedDiv.style.display === 'none') {
+                        expandedDiv.style.display = 'block';
+                        if (button.querySelector('i')) {
+                            button.innerHTML = '<i class="fas fa-chevron-up"></i>';
+                        } else {
+                            // For the "+X more" buttons, change text
+                            const text = button.textContent;
+                            button.textContent = text.replace('+', '-');
+                        }
+                    } else {
+                        expandedDiv.style.display = 'none';
+                        if (button.querySelector('i')) {
+                            button.innerHTML = '<i class="fas fa-chevron-down"></i>';
+                        } else {
+                            // For the "-X more" buttons, change text
+                            const text = button.textContent;
+                            button.textContent = text.replace('-', '+');
+                        }
+                    }
+                }
+            });
+            
             const filterButtons = document.querySelectorAll('.btn-filter');
             
             filterButtons.forEach(button => {

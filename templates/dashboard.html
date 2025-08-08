@@ -1373,6 +1373,15 @@
             window.filterRoomInventory = filterRoomInventory;
             window.clearRoomFilter = clearRoomFilter;
             window.toggleForSale = toggleForSale;
+            
+            // Add event listeners for room boxes (safe from XSS)
+            setTimeout(() => {
+                document.querySelectorAll('.room-box[data-room-name]').forEach(box => {
+                    box.addEventListener('click', function() {
+                        filterRoomInventory(this.dataset.roomName);
+                    });
+                });
+            }, 100);
         }
         
         // Render ANSI-style grid map
@@ -1397,7 +1406,7 @@
                                  data-room="${room.name}"
                                  data-containers="${room.containers.join(', ')}"
                                  title="${room.name}">
-                                <div class="room-box" onclick="filterRoomInventory('${room.name.replace(/'/g, "\\'")}')">
+                                <div class="room-box" data-room-name="${room.name}" style="cursor: pointer;">
                                     ${room.isStart ? '⌂' : '□'}
                                 </div>
                                 ${connections}

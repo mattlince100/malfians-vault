@@ -7,7 +7,8 @@ Beautiful web interface for viewing and managing character inventories
 import os
 import pandas as pd
 import numpy as np
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, render_template, request, jsonify, send_from_directory, session
+import secrets
 from pathlib import Path
 import glob
 from datetime import datetime
@@ -15,6 +16,20 @@ import json
 from container_manager import ContainerManager
 
 app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
+
+def generate_csrf_token():
+    """Generate a CSRF token for the session."""
+    if 'csrf_token' not in session:
+        session['csrf_token'] = secrets.token_hex(16)
+    return session['csrf_token']
+
+def validate_csrf_token(token):
+    """Validate CSRF token."""
+    return token and 'csrf_token' in session and token == session['csrf_token']
+
+# Make CSRF token available in all templates
+app.jinja_env.globals['csrf_token'] = generate_csrf_token
 
 class InventoryViewer:
     def __init__(self):
@@ -528,6 +543,12 @@ def api_add_container():
     """API endpoint for adding a new container mapping."""
     try:
         data = request.json
+        
+        # Validate CSRF token
+        csrf_token = data.get('csrf_token', '')
+        if not validate_csrf_token(csrf_token):
+            return jsonify({'error': 'Invalid or missing CSRF token'}), 403
+        
         item_name = data.get('item_name', '').strip()
         container_keyword = data.get('container_keyword', '').strip()
         
@@ -553,6 +574,10 @@ def api_add_container():
 def api_delete_container(item_name):
     """API endpoint for deleting a container mapping."""
     try:
+        # Validate CSRF token from header
+        csrf_token = request.headers.get('X-CSRF-Token', '')
+        if not validate_csrf_token(csrf_token):
+            return jsonify({'error': 'Invalid or missing CSRF token'}), 403
         success = viewer.container_manager.remove_container_mapping(item_name)
         
         if success:
