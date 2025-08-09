@@ -51,6 +51,8 @@ class InventoryViewer:
         
     def load_latest_data(self):
         """Load the most recent CSV files."""
+        print(f"Reloading data at {datetime.now().strftime('%H:%M:%S')}")
+        
         # Load inventory data
         csv_files = glob.glob("inventory_backup_*.csv")
         if csv_files:
@@ -68,6 +70,7 @@ class InventoryViewer:
             # Read CSV with proper handling of escape sequences
             self.stats_df = pd.read_csv(latest_stats_file, encoding='utf-8', escapechar=None)
             print(f"Loaded character stats from: {latest_stats_file}")
+            print(f"Successfully reloaded {len(self.df)} items and {len(self.stats_df)} character stats")
             
             # Debug: Check if ANSI codes survive CSV loading
             abygale_row = self.stats_df[self.stats_df['character'] == 'Abygale']
@@ -148,6 +151,12 @@ class InventoryViewer:
                     # Replace actual escape chars with literal \x1b for JSON serialization
                     safe_raw_score = raw_score.replace(chr(27), '\\x1b')
                     stat['raw_score'] = safe_raw_score
+                elif '[' in raw_score and 'm' in raw_score:
+                    # Handle literal bracket sequences like "[0;1;32m" -> "\x1b[0;1;32m"
+                    # Convert literal ANSI sequences to proper escape format
+                    import re
+                    safe_raw_score = re.sub(r'\[(\d+(?:;\d+)*)m', r'\\x1b[\1m', raw_score)
+                    stat['raw_score'] = safe_raw_score
                     
         # Clean NaN values before returning
         cleaned_stats = self.clean_nan_values(processed_stats)
@@ -224,6 +233,45 @@ class InventoryViewer:
         }
         
         return self.clean_nan_values(result)
+    
+    def get_consolidated_inventory(self):
+        """Get all inventory items with ANSI conversion applied."""
+        if self.df.empty:
+            return []
+        
+        # Convert DataFrame records to dict and clean NaN values
+        records = self.df.to_dict('records')
+        cleaned_records = self.clean_nan_values(records)
+        
+        # Apply ANSI conversion to both raw_line and item_name fields
+        for item in cleaned_records:
+            # Process raw_line
+            if 'raw_line' in item and item['raw_line']:
+                raw_line = str(item['raw_line'])
+                # Handle literal bracket sequences like "[0;1;32m" -> "\x1b[0;1;32m"
+                if '[' in raw_line and 'm' in raw_line and chr(27) not in raw_line:
+                    import re
+                    safe_raw_line = re.sub(r'\[(\d+(?:;\d+)*)m', r'\\x1b[\1m', raw_line)
+                    item['raw_line'] = safe_raw_line
+                elif chr(27) in raw_line:
+                    # Convert actual escape chars to literal \x1b for JSON safety
+                    safe_raw_line = raw_line.replace(chr(27), '\\x1b')
+                    item['raw_line'] = safe_raw_line
+            
+            # Also process item_name for ANSI codes (since we're keeping them)
+            if 'item_name' in item and item['item_name']:
+                item_name = str(item['item_name'])
+                # Handle literal bracket sequences like "[0;1;32m" -> "\x1b[0;1;32m"
+                if '[' in item_name and 'm' in item_name and chr(27) not in item_name:
+                    import re
+                    safe_item_name = re.sub(r'\[(\d+(?:;\d+)*)m', r'\\x1b[\1m', item_name)
+                    item['item_name'] = safe_item_name
+                elif chr(27) in item_name:
+                    # Convert actual escape chars to literal \x1b for JSON safety
+                    safe_item_name = item_name.replace(chr(27), '\\x1b')
+                    item['item_name'] = safe_item_name
+                    
+        return cleaned_records
     
     def get_treasure_vault(self):
         """Get all items from all containers across all characters."""
@@ -455,6 +503,25 @@ def get_for_sale_items():
             return jsonify(json.load(f))
     return jsonify({})
 
+@app.route('/house-inventory')
+def house_inventory():
+    """House inventory view."""
+    return render_template('house_inventory.html')
+
+@app.route('/api/house-inventory')
+def api_house_inventory():
+    """API endpoint for getting house inventory only."""
+    try:
+        house_items = viewer.get_consolidated_inventory()
+        # Filter to only house items (location starts with 'house:')
+        filtered_items = [
+            item for item in house_items 
+            if item.get('location', '').startswith('house:')
+        ]
+        return jsonify(filtered_items)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/for-sale-items', methods=['POST'])
 def update_for_sale_items():
     """API endpoint for updating items marked for sale."""
@@ -546,10 +613,7 @@ def consolidated_inventory():
 @app.route('/api/consolidated-inventory')
 def api_consolidated_inventory():
     """API endpoint for getting all inventory items."""
-    if viewer.df.empty:
-        return jsonify([])
-    records = viewer.df.to_dict('records')
-    return jsonify(viewer.clean_nan_values(records))
+    return jsonify(viewer.get_consolidated_inventory())
 
 @app.route('/reload')
 def reload_data():

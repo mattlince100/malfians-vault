@@ -237,11 +237,28 @@ class HouseScannerV2:
         # Look for the "contains:" section
         in_contents = False
         for line in lines:
+            # Keep original line for parsing but check stripped version
+            original_line = line
             line = line.strip()
             
-            # Skip empty lines and character status lines
-            if not line or (line.startswith('[') and line.endswith(']')):
+            # Skip empty lines
+            if not line:
                 continue
+            
+            # Enhanced prompt detection - strip ANSI codes first
+            import re
+            clean_line = re.sub(r'\x1b\[[0-9;]*m', '', line)
+            
+            # Skip character status prompts (e.g., "[Kaan] 1674/1674hp 461mn HY")
+            # More comprehensive check for prompts
+            if clean_line.startswith('['):
+                # Check for health/mana indicators
+                if ('hp' in clean_line.lower() or 'mn' in clean_line.lower() or 
+                    '/' in clean_line):  # HP format like 1674/1674
+                    continue
+                # Check for status flags
+                if any(flag in clean_line for flag in ['HTY', 'HSY', 'HY', 'TY', 'SY']):
+                    continue
                 
             # Look for container contents section
             if "contains:" in line.lower():
@@ -249,14 +266,16 @@ class HouseScannerV2:
                 continue
                 
             # Stop at next prompt or new command
-            if (line.endswith('HTY\\') or 
-                line.endswith('>') or 
-                (line.startswith('[') and 'hp' in line)):
+            if (clean_line.endswith('HTY\\') or 
+                clean_line.endswith('>') or 
+                clean_line.endswith('HTY') or
+                clean_line.endswith('HSY') or
+                clean_line.endswith('HY')):
                 break
                 
             # Parse items if we're in contents section
             if in_contents and line:
-                item = self.parse_house_item_line(line, f"house:{room_name}:{container_name}")
+                item = self.parse_house_item_line(original_line, f"house:{room_name}:{container_name}")
                 if item:
                     items.append(item)
                     
@@ -265,6 +284,23 @@ class HouseScannerV2:
     def parse_house_item_line(self, line: str, location: str) -> Optional[Dict]:
         """Parse a single item line from house containers."""
         if not line or line.lower() in ['nothing', 'none', 'empty']:
+            return None
+        
+        # Additional prompt detection - strip ANSI codes first
+        import re
+        clean_line = re.sub(r'\x1b\[[0-9;]*m', '', line).strip()
+        
+        # Skip if this looks like a character prompt
+        # Format: [CharacterName] XXX/XXXhp XXXmn (flags) 
+        if (clean_line.startswith('[') and 
+            ('/' in clean_line) and 
+            ('hp' in clean_line.lower() or 'mn' in clean_line.lower())):
+            logger.debug(f"Skipping prompt line in house container: {clean_line[:50]}")
+            return None
+        
+        # Also skip if line ends with combat/status flags
+        if any(clean_line.endswith(flag) for flag in ['HTY', 'HSY', 'HY', 'TY', 'SY', 'HTY\\', 'HSY\\', 'HY\\']):
+            logger.debug(f"Skipping status flag line in house container: {clean_line[:50]}")
             return None
             
         # Extract quantity if present - look for patterns like "(2)" or "(15)" at the end
@@ -296,6 +332,7 @@ class HouseScannerV2:
     
     def clean_house_item_name(self, name: str) -> str:
         """Clean and normalize house item name."""
+        # Keep ANSI codes - they're part of the item display!
         # Just strip whitespace - keep all magical properties and modifiers
         name = name.strip()
         

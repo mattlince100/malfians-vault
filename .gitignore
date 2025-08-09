@@ -80,10 +80,14 @@ desktop.ini
 archive/*
 !archive/.gitkeep
 
-# Test files
+# Test files and debug scripts
+test_*.py
 test_*.csv
+test_*.html
+*_test.py
 *_test.csv
 debug_*.py
+*_debug.py
 
 # Container mappings backup (keep main file)
 container_mappings_backup_*.json

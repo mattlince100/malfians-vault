@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>House Storage - Malfian's Vault</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #0a0e1a;
+            --secondary-bg: #141925;
+            --accent-bg: #1e2436;
+            --border-color: #2a3142;
+            --text-primary: #e8eaf0;
+            --text-secondary: #9ca3b8;
+            --accent-color: #7c3aed;
+            --accent-hover: #6d28d9;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --gold-color: #fbbf24;
+            --magic-glow: #c084fc;
+            --legendary-color: #f97316;
+            --house-color: #8b5a2b;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:wght@400;600&display=swap');
+        
+        body {
+            background: var(--primary-bg);
+            background-image: 
+                radial-gradient(ellipse at top left, rgba(139, 90, 43, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(124, 58, 237, 0.05) 0%, transparent 50%);
+            color: var(--text-primary);
+            font-family: 'Crimson Text', serif;
+            padding: 0;
+            margin: 0;
+            min-height: 100vh;
+        }
+        
+        .main-wrapper {
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: linear-gradient(to bottom, var(--secondary-bg), rgba(20, 25, 37, 0.95)) !important;
+            border-bottom: 2px solid var(--house-color);
+            box-shadow: 0 4px 20px rgba(139, 90, 43, 0.15);
+            padding: 1.2rem 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+            color: var(--text-primary) !important;
+        }
+
+        .nav-link {
+            color: var(--text-secondary) !important;
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary) !important;
+        }
+
+        .nav-link.active {
+            color: var(--house-color) !important;
+        }
+
+        .summary-stats {
+            background: linear-gradient(135deg, var(--secondary-bg), var(--accent-bg));
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-item {
+            display: inline-block;
+            margin-right: 2rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-family: 'Cinzel', serif;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .stat-value {
+            color: var(--house-color);
+            font-size: 1.25rem;
+            font-weight: 600;
+            font-family: 'Cinzel', serif;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .house-section {
+            background: linear-gradient(135deg, var(--secondary-bg), var(--accent-bg));
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .house-header {
+            background: linear-gradient(to right, var(--house-color), rgba(139, 90, 43, 0.7));
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .house-title {
+            font-family: 'Cinzel', serif;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin: 0;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .house-owner {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin: 0;
+        }
+
+        .room-container {
+            padding: 1rem;
+        }
+
+        .room-section {
+            background: var(--accent-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .room-header {
+            background: rgba(139, 90, 43, 0.3);
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .room-title {
+            font-family: 'Cinzel', serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin: 0;
+            color: var(--text-primary);
+        }
+
+        .container-section {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid rgba(42, 49, 66, 0.5);
+        }
+
+        .container-section:last-child {
+            border-bottom: none;
+        }
+
+        .container-title {
+            font-weight: 600;
+            color: var(--house-color);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .item-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .item-entry {
+            padding: 0.25rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+
+        .item-name {
+            color: #00ff00;
+        }
+
+        .item-quantity {
+            color: var(--text-secondary);
+            margin-left: 0.5rem;
+        }
+
+        .magical-item { color: #ff00ff; }
+        .glowing-item { color: #00ffff; }
+        .humming-item { color: #ffff00; }
+
+        .empty-message {
+            color: var(--text-secondary);
+            font-style: italic;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--primary-bg);
+            border-radius: 6px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, var(--house-color), rgba(139, 90, 43, 0.7));
+            border-radius: 6px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--house-color);
+        }
+
+        /* Page load animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .house-section {
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        /* ANSI color classes */
+        .ansi-black { color: #000000; }
+        .ansi-red { color: #cd0000; }
+        .ansi-green { color: #00cd00; }
+        .ansi-yellow { color: #cdcd00; }
+        .ansi-blue { color: #0000ee; }
+        .ansi-magenta { color: #cd00cd; }
+        .ansi-cyan { color: #00cdcd; }
+        .ansi-white { color: #e5e5e5; }
+        .ansi-bright-black { color: #7f7f7f; }
+        .ansi-bright-red { color: #ff0000; }
+        .ansi-bright-green { color: #00ff00; }
+        .ansi-bright-yellow { color: #ffff00; }
+        .ansi-bright-blue { color: #5c5cff; }
+        .ansi-bright-magenta { color: #ff00ff; }
+        .ansi-bright-cyan { color: #00ffff; }
+        .ansi-bright-white { color: #ffffff; }
+        .ansi-bold { font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="main-wrapper">
+        <!-- Navigation -->
+        <nav class="navbar navbar-expand-lg">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/" style="font-family: 'Cinzel', serif; font-weight: 600; font-size: 1.5rem; letter-spacing: 0.05em;">
+                    <i class="fas fa-home me-2" style="color: var(--house-color);"></i>
+                    <span style="background: linear-gradient(45deg, var(--house-color), #d2691e); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Malfian's Vault</span>
+                    <small style="display: block; font-size: 0.65rem; font-family: 'Crimson Text', serif; letter-spacing: 0.1em; color: var(--text-secondary); margin-top: -0.2rem;">House Storage</small>
+                </a>
+                <div class="navbar-nav ms-auto">
+                    <a class="nav-link" href="/">
+                        <i class="fas fa-users me-1"></i> Heroes
+                    </a>
+                    <a class="nav-link" href="/dashboard">
+                        <i class="fas fa-user-circle me-1"></i> Character
+                    </a>
+                    <a class="nav-link" href="/consolidated-inventory">
+                        <i class="fas fa-treasure-chest me-1"></i> Treasury
+                    </a>
+                    <a class="nav-link active" href="/house-inventory">
+                        <i class="fas fa-home me-1"></i> Houses
+                    </a>
+                    <a class="nav-link" href="/containers">
+                        <i class="fas fa-cogs me-1"></i> Containers
+                    </a>
+                    <a class="nav-link" href="/reload" onclick="reloadData(event)">
+                        <i class="fas fa-sync-alt me-1"></i> Refresh
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Summary Stats -->
+        <div class="summary-stats">
+            <div class="stat-item">
+                <div class="stat-label">Total Houses</div>
+                <div class="stat-value" id="totalHouses">-</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Total Rooms</div>
+                <div class="stat-value" id="totalRooms">-</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">House Items</div>
+                <div class="stat-value" id="totalItems">-</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Storage Containers</div>
+                <div class="stat-value" id="totalContainers">-</div>
+            </div>
+        </div>
+
+        <!-- Houses Container -->
+        <div id="housesContainer">
+            <!-- Houses will be populated here -->
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script>
+        let houseData = {};
+        
+        // Function to convert ANSI codes to HTML
+        function ansiToHtml(text) {
+            if (!text) return text;
+            
+            // Map ANSI color codes to CSS classes
+            const colorMap = {
+                '30': 'ansi-black',
+                '31': 'ansi-red', 
+                '32': 'ansi-green',
+                '33': 'ansi-yellow',
+                '34': 'ansi-blue',
+                '35': 'ansi-magenta',
+                '36': 'ansi-cyan',
+                '37': 'ansi-white',
+                '90': 'ansi-bright-black',
+                '91': 'ansi-bright-red',
+                '92': 'ansi-bright-green',
+                '93': 'ansi-bright-yellow',
+                '94': 'ansi-bright-blue',
+                '95': 'ansi-bright-magenta',
+                '96': 'ansi-bright-cyan',
+                '97': 'ansi-bright-white',
+                '1': 'ansi-bold'
+            };
+            
+            // The text contains literal string "\x1b" (4 chars) not actual escape char
+            let processedText = text;
+            
+            // Handle literal \x1b string (comes from JSON)
+            if (processedText.includes('\\x1b')) {
+                processedText = processedText.replace(/\\x1b/g, '\x1b');
+            }
+            
+            // Also handle bracket sequences without escape char
+            if (!processedText.includes('\x1b') && processedText.includes('[') && /\[\d+(?:;\d+)*m/.test(processedText)) {
+                processedText = processedText.replace(/\[(\d+(?:;\d+)*)m/g, '\x1b[$1m');
+            }
+            
+            // Process ANSI codes
+            processedText = processedText.replace(/\x1b\[([0-9;]+)m/g, (match, codes) => {
+                const codeList = codes.split(';');
+                let classes = [];
+                let hasReset = false;
+                
+                // Process all codes in the sequence
+                for (const code of codeList) {
+                    if (code === '0') {
+                        hasReset = true;
+                    } else if (colorMap[code]) {
+                        classes.push(colorMap[code]);
+                    }
+                }
+                
+                if (classes.length > 0) {
+                    if (hasReset) {
+                        return `</span><span class="${classes.join(' ')}">`;
+                    }
+                    return `<span class="${classes.join(' ')}">`;
+                }
+                
+                if (hasReset) {
+                    return '</span>';
+                }
+                
+                return '';
+            });
+            
+            // Close any remaining open spans
+            const openSpans = (processedText.match(/<span/g) || []).length;
+            const closeSpans = (processedText.match(/<\/span>/g) || []).length;
+            for (let i = 0; i < openSpans - closeSpans; i++) {
+                processedText += '</span>';
+            }
+            
+            return processedText;
+        }
+
+        // Load data on page load
+        async function loadData() {
+            try {
+                const response = await fetch('/api/house-inventory');
+                const items = await response.json();
+                
+                // Group items by house and room
+                houseData = groupHouseData(items);
+                
+                // Update stats
+                updateStats();
+                
+                // Render houses
+                renderHouses();
+                
+            } catch (error) {
+                console.error('Error loading house data:', error);
+                showEmptyMessage();
+            }
+        }
+
+        function groupHouseData(items) {
+            const houses = {};
+            
+            items.forEach(item => {
+                // Parse house location format: "house:Room Name:container"
+                const locationParts = item.location.split(':');
+                if (locationParts.length < 2 || locationParts[0] !== 'house') return;
+                
+                // The character who owns the house is in item.character (e.g., "Kaan_house")
+                const houseCharacter = item.character || 'Unknown_house';
+                const roomName = locationParts[1];
+                const containerName = locationParts[2] || 'loose items';
+                
+                if (!houses[houseCharacter]) {
+                    houses[houseCharacter] = {
+                        character: houseCharacter,
+                        owner: item.house_owner || houseCharacter.replace('_house', '').replace('_House', ''),
+                        house_name: item.house_name || `${houseCharacter.replace('_house', '').replace('_House', '')}'s House`,
+                        rooms: {}
+                    };
+                }
+                
+                if (!houses[houseCharacter].rooms[roomName]) {
+                    houses[houseCharacter].rooms[roomName] = {};
+                }
+                
+                if (!houses[houseCharacter].rooms[roomName][containerName]) {
+                    houses[houseCharacter].rooms[roomName][containerName] = [];
+                }
+                
+                houses[houseCharacter].rooms[roomName][containerName].push(item);
+            });
+            
+            return houses;
+        }
+
+        function updateStats() {
+            const totalHouses = Object.keys(houseData).length;
+            let totalRooms = 0;
+            let totalItems = 0;
+            let totalContainers = 0;
+            
+            Object.values(houseData).forEach(house => {
+                totalRooms += Object.keys(house.rooms).length;
+                Object.values(house.rooms).forEach(room => {
+                    totalContainers += Object.keys(room).length;
+                    Object.values(room).forEach(container => {
+                        totalItems += container.reduce((sum, item) => sum + parseInt(item.quantity || 1), 0);
+                    });
+                });
+            });
+            
+            document.getElementById('totalHouses').textContent = totalHouses;
+            document.getElementById('totalRooms').textContent = totalRooms;
+            document.getElementById('totalItems').textContent = totalItems.toLocaleString();
+            document.getElementById('totalContainers').textContent = totalContainers;
+        }
+
+        function renderHouses() {
+            const container = document.getElementById('housesContainer');
+            
+            if (Object.keys(houseData).length === 0) {
+                showEmptyMessage();
+                return;
+            }
+            
+            let html = '';
+            
+            Object.entries(houseData).forEach(([houseCharacter, houseInfo]) => {
+                const houseName = houseInfo.house_name || `${houseInfo.owner}'s House`;
+                const ownerName = houseInfo.owner || houseCharacter.replace('_house', '').replace('_House', '');
+                
+                html += `
+                    <div class="house-section">
+                        <div class="house-header">
+                            <h3 class="house-title">
+                                <i class="fas fa-home me-2"></i>
+                                ${houseName}
+                            </h3>
+                            <p class="house-owner">Owner: ${ownerName}</p>
+                        </div>
+                        <div class="room-container">
+                `;
+                
+                Object.entries(houseInfo.rooms).forEach(([roomName, containers]) => {
+                    html += `
+                        <div class="room-section">
+                            <div class="room-header">
+                                <h4 class="room-title">
+                                    <i class="fas fa-door-open me-2"></i>
+                                    ${roomName}
+                                </h4>
+                            </div>
+                    `;
+                    
+                    Object.entries(containers).forEach(([containerName, items]) => {
+                        html += `
+                            <div class="container-section">
+                                <div class="container-title">
+                                    <i class="fas fa-box me-1"></i>
+                                    ${containerName.charAt(0).toUpperCase() + containerName.slice(1)}
+                                    <span class="text-muted">(${items.length} items)</span>
+                                </div>
+                                <ul class="item-list">
+                        `;
+                        
+                        items.forEach(item => {
+                            const quantity = parseInt(item.quantity || 1);
+                            const quantityText = quantity > 1 ? ` (${quantity})` : '';
+                            
+                            // Style item name based on properties
+                            let itemClass = 'item-name';
+                            if (item.raw_line && item.raw_line.includes('(Magical)')) itemClass += ' magical-item';
+                            if (item.raw_line && item.raw_line.includes('(Glowing)')) itemClass += ' glowing-item';
+                            if (item.raw_line && item.raw_line.includes('(Humming)')) itemClass += ' humming-item';
+                            
+                            // Apply ANSI to HTML conversion for colored display
+                            const displayName = ansiToHtml(item.item_name || '');
+                            
+                            html += `
+                                <li class="item-entry">
+                                    <span class="${itemClass}">${displayName}</span>
+                                    <span class="item-quantity">${quantityText}</span>
+                                </li>
+                            `;
+                        });
+                        
+                        html += `
+                                </ul>
+                            </div>
+                        `;
+                    });
+                    
+                    html += `</div>`;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function showEmptyMessage() {
+            const container = document.getElementById('housesContainer');
+            container.innerHTML = `
+                <div class="empty-message">
+                    <i class="fas fa-home fa-3x mb-3" style="color: var(--text-secondary);"></i>
+                    <h4>No House Storage Found</h4>
+                    <p>No house inventory data available. Make sure you have:</p>
+                    <ul style="text-align: left; display: inline-block;">
+                        <li>Configured houses in <code>houses_v2.csv</code></li>
+                        <li>Run scans with the <code>--house</code> flag</li>
+                        <li>Characters with house storage containers</li>
+                    </ul>
+                </div>
+            `;
+        }
+
+        async function reloadData(event) {
+            event.preventDefault();
+            try {
+                const response = await fetch('/reload');
+                const result = await response.json();
+                if (result.status === 'success') {
+                    location.reload();
+                }
+            } catch (error) {
+                console.error('Error reloading data:', error);
+            }
+        }
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>

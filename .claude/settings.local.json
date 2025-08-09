@@ -24,7 +24,9 @@
       "Bash(true)",
       "Bash(taskkill:*)",
       "Bash(find:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(del test_ansi_debug.py)",
+      "Bash(rm:*)"
     ],
     "deny": []
   }

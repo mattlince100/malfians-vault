@@ -267,6 +267,25 @@
             background-color: var(--accent-bg);
             border-color: var(--border-color);
         }
+        
+        /* ANSI color classes */
+        .ansi-black { color: #000000; }
+        .ansi-red { color: #cd0000; }
+        .ansi-green { color: #00cd00; }
+        .ansi-yellow { color: #cdcd00; }
+        .ansi-blue { color: #0000ee; }
+        .ansi-magenta { color: #cd00cd; }
+        .ansi-cyan { color: #00cdcd; }
+        .ansi-white { color: #e5e5e5; }
+        .ansi-bright-black { color: #7f7f7f; }
+        .ansi-bright-red { color: #ff0000; }
+        .ansi-bright-green { color: #00ff00; }
+        .ansi-bright-yellow { color: #ffff00; }
+        .ansi-bright-blue { color: #5c5cff; }
+        .ansi-bright-magenta { color: #ff00ff; }
+        .ansi-bright-cyan { color: #00ffff; }
+        .ansi-bright-white { color: #ffffff; }
+        .ansi-bold { font-weight: bold; }
     </style>
 </head>
 <body>
@@ -288,6 +307,9 @@
                 </a>
                 <a class="nav-link active" href="/consolidated-inventory">
                     <i class="fas fa-treasure-chest me-1"></i> Treasury
+                </a>
+                <a class="nav-link" href="/house-inventory">
+                    <i class="fas fa-home me-1"></i> Houses
                 </a>
                 <a class="nav-link" href="/containers">
                     <i class="fas fa-cogs me-1"></i> Containers
@@ -335,6 +357,9 @@
                     </button>
                     <button class="btn btn-filter" data-filter="for-sale">
                         <i class="fas fa-tag me-1"></i> For Sale
+                    </button>
+                    <button class="btn btn-filter" data-filter="houses">
+                        <i class="fas fa-home me-1"></i> Houses
                     </button>
                 </div>
             </div>
@@ -398,6 +423,7 @@
                 const response = await fetch('/api/consolidated-inventory');
                 allItems = await response.json();
                 
+                
                 // Load for-sale items
                 const forSaleResponse = await fetch('/api/for-sale-items');
                 forSaleItems = await forSaleResponse.json();
@@ -420,6 +446,11 @@
             consolidatedItems = {};
             
             allItems.forEach(item => {
+                // Skip items with no name
+                if (!item.item_name) {
+                    console.warn('Item with no name found:', item);
+                    return;
+                }
                 const key = item.item_name;
                 
                 if (!consolidatedItems[key]) {
@@ -477,6 +508,8 @@
                         } else if (currentFilter === 'for-sale') {
                             // For sale filter shows all locations for marked items
                             includeInCount = true;
+                        } else if (currentFilter === 'houses' && !detail.location.startsWith('house:')) {
+                            includeInCount = false;
                         }
                     }
                     
@@ -591,22 +624,31 @@
                                 locationTypes.add('Inventory');
                             }
                         });
+                    } else if (currentFilter === 'houses') {
+                        locationTypes.add('Houses');
                     }
                 }
                 
                 const locationDisplay = Array.from(locationTypes).join(', ') || 'Unknown';
                 
                 // Add to filtered data array
-                // Check if item is for sale
-                const isForSale = forSaleItems[item.item_name] ? true : false;
-                const price = forSaleItems[item.item_name]?.price || '';
+                // Check if item is for sale (with null check)
+                const isForSale = item.item_name && forSaleItems[item.item_name] ? true : false;
+                const price = item.item_name && forSaleItems[item.item_name]?.price || '';
                 
                 // Apply for-sale filter if active
                 if (currentFilter === 'for-sale' && !isForSale) {
                     return; // Skip items not marked for sale
                 }
                 
-                const checkboxHtml = `<input type="checkbox" class="for-sale-checkbox" data-item="${item.item_name.replace(/"/g, '&quot;')}" ${isForSale ? 'checked' : ''} onchange="toggleForSale(this)">`;
+                // Skip items with null or undefined item_name
+                if (!item.item_name) {
+                    console.warn('Skipping item with null/undefined name:', item);
+                    return;
+                }
+                
+                const safeItemName = (item.item_name || '').replace(/"/g, '&quot;');
+                const checkboxHtml = `<input type="checkbox" class="for-sale-checkbox" data-item="${safeItemName}" ${isForSale ? 'checked' : ''} onchange="toggleForSale(this)">`;
                 
                 filteredData.push([
                     checkboxHtml,
@@ -614,7 +656,7 @@
                     currentFilter === 'all' ? item.total_quantity : filteredTotal,
                     `<span class="location-badge">${locationDisplay}</span>`,
                     characterDisplay,
-                    `<input type="text" class="form-control form-control-sm for-sale-price" placeholder="Enter price..." value="${price}" data-item="${item.item_name.replace(/"/g, '&quot;')}" onchange="updatePrice(this)" style="width: 100%; min-width: 100px;">`
+                    `<input type="text" class="form-control form-control-sm for-sale-price" placeholder="Enter price..." value="${price}" data-item="${safeItemName}" onchange="updatePrice(this)" style="width: 100%; min-width: 100px;">`
                 ]);
             });
             
@@ -768,16 +810,104 @@
             populateTable();
         }
 
-        // Function to clean item flags from item names
-        function cleanItemName(itemName) {
-            const hideFlags = document.getElementById('hideItemFlags').checked;
+        // Function to convert ANSI codes to HTML
+        function ansiToHtml(text) {
+            if (!text) return text;
             
+            // Map ANSI color codes to CSS classes
+            const colorMap = {
+                '30': 'ansi-black',
+                '31': 'ansi-red', 
+                '32': 'ansi-green',
+                '33': 'ansi-yellow',
+                '34': 'ansi-blue',
+                '35': 'ansi-magenta',
+                '36': 'ansi-cyan',
+                '37': 'ansi-white',
+                '90': 'ansi-bright-black',
+                '91': 'ansi-bright-red',
+                '92': 'ansi-bright-green',
+                '93': 'ansi-bright-yellow',
+                '94': 'ansi-bright-blue',
+                '95': 'ansi-bright-magenta',
+                '96': 'ansi-bright-cyan',
+                '97': 'ansi-bright-white',
+                '1': 'ansi-bold'
+            };
+            
+            // The text contains literal string "\x1b" (4 chars) not actual escape char
+            // Replace the literal string \x1b with actual escape character
+            let processedText = text;
+            
+            // Handle literal \x1b string (comes from JSON)
+            if (processedText.includes('\\x1b')) {
+                processedText = processedText.replace(/\\x1b/g, '\x1b');
+            }
+            
+            // Also handle bracket sequences without escape char (from CSV data)
+            // Convert [0;32m to \x1b[0;32m if no escape char present
+            if (!processedText.includes('\x1b') && processedText.includes('[') && /\[\d+(?:;\d+)*m/.test(processedText)) {
+                processedText = processedText.replace(/\[(\d+(?:;\d+)*)m/g, '\x1b[$1m');
+            }
+            
+            // Process ANSI codes
+            processedText = processedText.replace(/\x1b\[([0-9;]+)m/g, (match, codes) => {
+                const codeList = codes.split(';');
+                let classes = [];
+                let hasReset = false;
+                
+                // Process all codes in the sequence
+                for (const code of codeList) {
+                    if (code === '0') {
+                        // Reset code - but continue processing other codes
+                        hasReset = true;
+                    } else if (colorMap[code]) {
+                        classes.push(colorMap[code]);
+                    }
+                }
+                
+                // If we have classes to apply, create span
+                if (classes.length > 0) {
+                    // If there was a reset, close previous span and open new one
+                    if (hasReset) {
+                        return `</span><span class="${classes.join(' ')}">`;
+                    }
+                    return `<span class="${classes.join(' ')}">`;
+                }
+                
+                // Just reset, close span
+                if (hasReset) {
+                    return '</span>';
+                }
+                
+                return '';
+            });
+            
+            // Close any remaining open spans
+            const openSpans = (processedText.match(/<span/g) || []).length;
+            const closeSpans = (processedText.match(/<\/span>/g) || []).length;
+            for (let i = 0; i < openSpans - closeSpans; i++) {
+                processedText += '</span>';
+            }
+            
+            return processedText;
+        }
+        
+        // Function to clean item flags from item names and apply ANSI
+        function cleanItemName(itemName) {
+            if (!itemName) return itemName;
+            
+            // Always apply ANSI to HTML conversion for color display
+            let processedName = ansiToHtml(itemName);
+            
+            const hideFlags = document.getElementById('hideItemFlags').checked;
             if (!hideFlags) {
-                return itemName; // Return original name if not hiding flags
+                return processedName; // Return ANSI-processed name if not hiding flags
             }
             
             // Remove common item flags: (Glowing), (Magical), (Humming), (Red Aura), (Flaming White), etc.
-            return itemName
+            // But do this on the HTML output to preserve color spans
+            return processedName
                 .replace(/\([^)]*\)\s*/g, '') // Remove anything in parentheses followed by optional space
                 .trim(); // Remove any leading/trailing whitespace
         }
