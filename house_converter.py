@@ -130,7 +130,7 @@ class HouseConverter:
         rooms_string = '|'.join(rooms_data)
         
         return {
-            'character': f"{self.character}_house",
+            'character': self.character,  # Use base character name, not _house version
             'house_name': self.house_name,  
             'rooms': rooms_string
         }
@@ -186,8 +186,8 @@ def main():
         print(f"Saved to: houses_v2.csv")
         
         print(f"\nNext steps:")
-        print(f"1. Add '{csv_data['character']}' to your characters.csv file")
-        print(f"2. Run a scan to capture your house inventory!")
+        print(f"1. Make sure '{csv_data['character']}' is in your characters.csv file")
+        print(f"2. Run a scan with --house flag to capture your house inventory!")
         print(f"3. View your house map in the web interface")
         
     except Exception as e:
