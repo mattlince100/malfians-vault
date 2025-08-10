@@ -26,7 +26,7 @@ class HouseManagerV2:
             with open(HOUSES_FILE, 'r') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
-                    character = row['character'].strip()
+                    character = row['character'].strip().lower()  # Convert to lowercase for consistent matching
                     
                     # Check if this is the new format (with 'rooms' column) or old format
                     if 'rooms' in row:
@@ -71,11 +71,11 @@ class HouseManagerV2:
     
     def get_house_config(self, character: str) -> Optional[Dict]:
         """Get house configuration for a specific character."""
-        return self.houses.get(character)
+        return self.houses.get(character.lower())  # Case-insensitive lookup
     
     def has_house(self, character: str) -> bool:
         """Check if a character has a house configured."""
-        return character in self.houses
+        return character.lower() in self.houses  # Case-insensitive check
     
     def get_all_house_owners(self) -> List[str]:
         """Get list of all characters that have houses."""

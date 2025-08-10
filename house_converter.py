@@ -38,12 +38,12 @@ class HouseConverter:
                 self.house_name = line.split(':', 1)[1].strip()
                 continue
                 
-            # Parse sections
-            if line == 'ROOMS IN MY HOUSE:':
+            # Parse sections - make section detection more flexible
+            if 'ROOMS IN MY HOUSE' in line.upper():
                 current_section = 'rooms'
                 continue
                 
-            if line == 'HOW TO GET TO EACH ROOM:':
+            if 'HOW TO GET' in line.upper() or 'HOW TO GEAT' in line.upper():  # Handle typos
                 current_section = 'paths'
                 continue
                 
@@ -119,7 +119,7 @@ class HouseConverter:
         if not self.character or not self.house_name:
             raise ValueError("Missing character name or house name")
             
-        # Build the rooms string for CSV
+        # Build the rooms string for CSV - fix case sensitivity and ensure all rooms are included
         rooms_data = []
         for room_name, containers in self.rooms.items():
             path = self.paths.get(room_name, 'start')
@@ -130,7 +130,7 @@ class HouseConverter:
         rooms_string = '|'.join(rooms_data)
         
         return {
-            'character': self.character,  # Use base character name, not _house version
+            'character': self.character.lower(),  # Convert to lowercase for consistency
             'house_name': self.house_name,  
             'rooms': rooms_string
         }
@@ -176,14 +176,26 @@ def main():
         converter = HouseConverter()
         converter.parse_simple_format(content)
         
+        # Debug output - show what was parsed
+        print(f"\nDEBUG - Parsed Rooms:")
+        for room, containers in converter.rooms.items():
+            print(f"  - {room}: {containers}")
+        
+        print(f"\nDEBUG - Parsed Paths:")
+        for room, path in converter.paths.items():
+            print(f"  - {room}: {path}")
+        
         # Save to CSV
         csv_data = converter.save_to_csv()
         
-        print("SUCCESS: House setup converted successfully!")
+        print("\nSUCCESS: House setup converted successfully!")
         print(f"Character: {csv_data['character']}")
         print(f"House: {csv_data['house_name']}")
         print(f"Rooms: {len(converter.rooms)}")
         print(f"Saved to: houses_v2.csv")
+        
+        print(f"\nCSV Output:")
+        print(f"  Rooms string: {csv_data['rooms']}")
         
         print(f"\nNext steps:")
         print(f"1. Make sure '{csv_data['character']}' is in your characters.csv file")

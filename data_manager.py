@@ -89,17 +89,24 @@ class DataManager:
         """Add scanned data from a character to the collection, replacing any existing data for that character."""
         
         if character_data and len(character_data) > 0:
-            # Normalize character names in the new data
-            normalized_name = self.normalize_character_name(character_data[0]['character'])
-            for item in character_data:
-                item['character'] = normalized_name
+            # Preserve original character name for house characters - don't normalize case for houses
+            original_name = character_data[0]['character']
             
-            # Get character name for comparison
-            char_name = normalized_name.lower()
+            # Only normalize non-house characters
+            if '_house' not in original_name.lower() and '_House' not in original_name:
+                normalized_name = self.normalize_character_name(original_name)
+                for item in character_data:
+                    item['character'] = normalized_name
+            else:
+                # Keep house character names exactly as they are
+                normalized_name = original_name
             
-            # Remove any existing inventory data for this character (fresh overwrite)
+            # Get character name for comparison - exact match now, not just case-insensitive
+            char_name_exact = normalized_name
+            
+            # Remove any existing inventory data for this exact character name
             original_count = len(self.all_data)
-            self.all_data = [item for item in self.all_data if item['character'].lower() != char_name]
+            self.all_data = [item for item in self.all_data if item['character'] != char_name_exact]
             removed_count = original_count - len(self.all_data)
             
             if removed_count > 0:
