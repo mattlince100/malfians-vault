@@ -88,6 +88,7 @@ class InventoryScanner:
         house_items, house_stats = await self.scan_character_house(character_name)
         if house_items:
             logger.info(f"Found house storage for {character_name}: {len(house_items)} items")
+            logger.info(f"House character name in stats: {house_stats.get('character', 'NOT SET')}")
             # House items and stats will be handled separately by the data manager
         
         # Save and quit immediately

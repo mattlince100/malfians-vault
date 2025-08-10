@@ -103,6 +103,12 @@ class HouseScannerV2:
             
             scan_time = time.time() - start_time
             logger.info(f"House scan complete for {character_name}: {len(all_items)} items found in {scan_time:.1f}s")
+            
+            # Debug logging
+            if all_items:
+                logger.info(f"First house item character name: {all_items[0].get('character', 'NOT SET')}")
+                logger.info(f"House stats character name: {house_stats.get('character', 'NOT SET')}")
+            
             return all_items, house_stats
             
         except Exception as e:

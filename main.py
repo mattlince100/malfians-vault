@@ -247,13 +247,17 @@ async def scan_character(username: str, password: str, data_manager: DataManager
             total_items = 0
             if isinstance(scan_result, list):
                 # Multiple datasets (character + house)
+                logger.info(f"Processing {len(scan_result)} datasets for {username}")
                 for items, char_stats in scan_result:
+                    char_name = char_stats.get('character', 'Unknown')
+                    logger.info(f"Processing dataset for: {char_name} with {len(items)} items")
                     data_manager.add_character_data(items, char_stats)
                     total_items += len(items)
-                    logger.info(f"Added {len(items)} items for: {char_stats['character']}")
+                    logger.info(f"Added {len(items)} items for: {char_name}")
             else:
                 # Single dataset (character only)
                 items, char_stats = scan_result
+                logger.info(f"Processing single dataset for {username} with {len(items)} items")
                 data_manager.add_character_data(items, char_stats)
                 total_items = len(items)
             
