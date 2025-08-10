@@ -28,7 +28,8 @@
       "Bash(del test_ansi_debug.py)",
       "Bash(rm:*)",
       "Bash(cut:*)",
-      "Bash(awk:*)"
+      "Bash(awk:*)",
+      "Bash(mv:*)"
     ],
     "deny": []
   }
