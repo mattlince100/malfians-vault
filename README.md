@@ -2,7 +2,7 @@
 
 A comprehensive Python-based inventory management system for Realms of Despair MUD players. Track your characters, inventory, equipment, and house storage with a beautiful web interface.
 
-![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-2.0.1-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.8%2B-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)
 
@@ -47,7 +47,7 @@ A comprehensive Python-based inventory management system for Realms of Despair M
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/malfians-vault.git
+   git clone https://github.com/mattlince100/malfians-vault.git
    cd malfians-vault
    ```
 
@@ -122,8 +122,11 @@ malfians-vault/
 ├── house_scanner_v2.py      # Multi-room house scanning
 ├── house_manager_v2.py      # House configuration management
 ├── templates/               # Web interface templates
+│   ├── base.html            # Base template with navigation
 │   ├── character_table.html # Main character overview
-│   ├── consolidated_inventory.html # Treasury view
+│   ├── dashboard.html       # Character dashboard
+│   ├── house_inventory.html # House inventory view
+│   ├── treasure_vault.html  # Treasury/vault view
 │   └── container_management.html # Container management
 ├── static/                  # Web assets
 ├── logs/                    # Scan log files
@@ -248,8 +251,18 @@ The system automatically creates timestamped backups of all data. Look for files
 ### Data Cleanup
 Several utility scripts are included for data maintenance:
 - `clean_duplicate_data.py` - Remove duplicate entries
-- `fix_character_case.py` - Fix character name casing issues
+- `clean_null_items.py` - Remove null/empty item entries
 - `archive_old_files.py` - Move old files to archive directory
+
+## 🐛 Recent Fixes (v2.0.1+)
+
+### Critical Bug Fixes
+- **House Converter**: Now correctly parses all rooms in multi-room houses (not just first room)
+- **Case Sensitivity**: Character names are now case-insensitive throughout the system
+- **Data Protection**: House scanning no longer wipes character inventory data
+- **ANSI Colors**: Proper display of MUD colors in web interface
+- **Prompt Detection**: Character prompts no longer captured as inventory items
+- **Class Icons**: WoW-inspired class icons for better visual distinction
 
 ## 🤝 Contributing
 
