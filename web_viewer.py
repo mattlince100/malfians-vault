@@ -512,6 +512,12 @@ def character_detail(character_name):
     char_data = viewer.get_character_data(character_name)
     return render_template('character.html', data=char_data)
 
+@app.route('/debug/<character_name>')
+def debug_character(character_name):
+    """Debug character data."""
+    char_data = viewer.get_character_data(character_name)
+    return render_template('debug_template.html', data=char_data)
+
 @app.route('/treasure-vault')
 def treasure_vault():
     """Treasure vault page showing all container items."""

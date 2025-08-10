@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head><title>Debug</title></head>
+<body>
+<h1>Debug Character Data</h1>
+<p>Character: {{ data.character }}</p>
+<p>Class: {{ data.stats.class }}</p>
+<p>Class Icon: {{ data.stats.class|class_icon }}</p>
+<p>Class Color: {{ data.stats.class|class_color }}</p>
+<p>Icon HTML: &lt;i class="{{ data.stats.class|class_icon }}" style="color: {{ data.stats.class|class_color }};"&gt;&lt;/i&gt;</p>
+<i class="{{ data.stats.class|class_icon }}" style="color: {{ data.stats.class|class_color }};"></i>
+</body>
+</html>

@@ -2,6 +2,8 @@
 
 {% block title %}{{ data.character }} - Malfian's Vault{% endblock %}
 
+<!-- Cache buster: v2.1 -->
+
 {% block content %}
 <div class="fade-in">
     <!-- Character Header -->
@@ -12,11 +14,15 @@
                     <div class="row align-items-center">
                         <div class="col-md-8">
                             <h1 class="mb-2" style="font-family: 'Cinzel', serif; font-weight: 700; color: var(--text-primary);">
+                                {% if data.stats and data.stats.class %}
                                 <i class="{{ data.stats.class|class_icon }} me-2" style="color: {{ data.stats.class|class_color }};"></i>
+                                {% else %}
+                                <i class="fas fa-user me-2" style="color: var(--accent-color);"></i>
+                                {% endif %}
                                 {{ data.character|title }}
                             </h1>
                             <p class="mb-0" style="color: var(--text-secondary); font-style: italic;">
-                                {% if data.stats.class %}{{ data.stats.class|title }} {% endif %}{% if data.stats.race %}{{ data.stats.race|title }} {% endif %}• Hero of the Realms • Complete inventory and equipment manifest
+                                {% if data.stats and data.stats.class %}{{ data.stats.class|title }} {% endif %}{% if data.stats and data.stats.race %}{{ data.stats.race|title }} {% endif %}• Hero of the Realms • Complete inventory and equipment manifest
                             </p>
                         </div>
                         <div class="col-md-4 text-end">
