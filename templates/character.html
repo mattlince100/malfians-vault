@@ -12,10 +12,12 @@
                     <div class="row align-items-center">
                         <div class="col-md-8">
                             <h1 class="mb-2" style="font-family: 'Cinzel', serif; font-weight: 700; color: var(--text-primary);">
-                                <i class="fas fa-user-ninja me-2" style="color: var(--accent-color);"></i>
+                                <i class="{{ data.stats.class|class_icon }} me-2" style="color: {{ data.stats.class|class_color }};"></i>
                                 {{ data.character|title }}
                             </h1>
-                            <p class="mb-0" style="color: var(--text-secondary); font-style: italic;">Hero of the Realms • Complete inventory and equipment manifest</p>
+                            <p class="mb-0" style="color: var(--text-secondary); font-style: italic;">
+                                {% if data.stats.class %}{{ data.stats.class|title }} {% endif %}{% if data.stats.race %}{{ data.stats.race|title }} {% endif %}• Hero of the Realms • Complete inventory and equipment manifest
+                            </p>
                         </div>
                         <div class="col-md-4 text-end">
                             <div class="d-flex justify-content-end">

@@ -31,6 +31,116 @@ def validate_csrf_token(token):
 # Make CSRF token available in all templates
 app.jinja_env.globals['csrf_token'] = generate_csrf_token
 
+def get_class_icon(character_class):
+    """Get appropriate Font Awesome icon for character class."""
+    if not character_class:
+        return 'fas fa-user'
+    
+    class_icons = {
+        # Realms of Despair Classes
+        'warrior': 'fas fa-shield-alt',
+        'thief': 'fas fa-mask',
+        'mage': 'fas fa-magic',
+        'cleric': 'fas fa-cross',
+        'ranger': 'fas fa-tree',
+        'druid': 'fas fa-leaf',
+        'vampire': 'fas fa-tint',
+        'augurer': 'fas fa-eye',
+        'paladin': 'fas fa-hands-praying',
+        
+        # Advanced/Prestige Classes
+        'bladesinger': 'fas fa-music',  # Warrior-Bard hybrid
+        'fathomer': 'fas fa-water',
+        'nephandi': 'fas fa-skull',  # Dark mage
+        'barbarian': 'fas fa-fire',
+        'infernalist': 'fas fa-fire-flame-curved',  # Demon-themed
+        'dread': 'fas fa-ghost',  # Death knight type
+        'knight': 'fas fa-chess-knight',
+        'hunter': 'fas fa-crosshairs',
+        
+        # Multi-class combinations
+        'thief-warrior': 'fas fa-user-ninja',
+        'cleric-druid': 'fas fa-spa',
+        'druid-cleric': 'fas fa-seedling',
+        
+        # House/Storage (not actual classes)
+        'house storage': 'fas fa-home',
+        'storage': 'fas fa-warehouse'
+    }
+    
+    # Convert to lowercase for matching
+    class_lower = str(character_class).lower().strip()
+    
+    # Check for exact matches first
+    if class_lower in class_icons:
+        return class_icons[class_lower]
+    
+    # Check for partial matches
+    for class_key, icon in class_icons.items():
+        if class_key in class_lower:
+            return icon
+    
+    # Default icon for unknown classes
+    return 'fas fa-user-circle'
+
+# Make the function available as a template filter
+app.jinja_env.filters['class_icon'] = get_class_icon
+
+def get_class_color(character_class):
+    """Get appropriate color for character class."""
+    if not character_class:
+        return 'var(--accent-color)'
+    
+    class_colors = {
+        # Realms of Despair Classes - Matching character_table.html colors
+        'warrior': '#D2691E',  # Light Brown (matching row-warrior)
+        'thief': '#FFFF00',  # Yellow (matching row-thief)
+        'mage': '#00FFFF',  # Cyan (matching row-mage)
+        'cleric': '#FFFFFF',  # White (matching row-cleric)
+        'ranger': '#32CD32',  # Forest Green (matching row-ranger)
+        'druid': '#00FF00',  # Green (matching row-druid)
+        'vampire': '#FF6B6B',  # Bright Red (matching row-vampire)
+        'augurer': '#B0B0B0',  # Gray (matching row-augurer)
+        'paladin': '#FFB6C1',  # Pink (matching row-paladin)
+        
+        # Advanced/Prestige Classes - Matching character_table.html colors
+        'bladesinger': '#CD5C5C',  # Dull Red (matching row-bladesinger)
+        'fathomer': '#5F9EA0',  # Ocean Blue (matching row-fathomer)
+        'nephandi': '#9400D3',  # Purple (matching row-nephandi)
+        'barbarian': '#FFA500',  # Orange (matching row-barbarian)
+        'infernalist': '#9400D3',  # Purple (same as nephandi)
+        'dread': '#FF6B6B',  # Bright Red (matching row-dread, same as vampire)
+        'knight': '#FFB6C1',  # Pink (same as paladin)
+        'hunter': '#32CD32',  # Forest Green (same as ranger)
+        
+        # Multi-class combinations - Use primary class color
+        'thief-warrior': '#FFFF00',  # Yellow (thief primary)
+        'cleric-druid': '#FFFFFF',  # White (cleric primary)
+        'druid-cleric': '#00FF00',  # Green (druid primary)
+        
+        # House/Storage (not actual classes)
+        'house storage': 'var(--house-color)',
+        'storage': 'var(--house-color)'
+    }
+    
+    # Convert to lowercase for matching
+    class_lower = str(character_class).lower().strip()
+    
+    # Check for exact matches first
+    if class_lower in class_colors:
+        return class_colors[class_lower]
+    
+    # Check for partial matches
+    for class_key, color in class_colors.items():
+        if class_key in class_lower:
+            return color
+    
+    # Default color
+    return 'var(--accent-color)'
+
+# Make the color function available as a template filter
+app.jinja_env.filters['class_color'] = get_class_color
+
 class InventoryViewer:
     def __init__(self):
         self.df = None
@@ -223,13 +333,21 @@ class InventoryViewer:
             for container in unique_containers:
                 containers[container] = container_data[container_data['location'] == container].to_dict('records')
         
+        # Get character stats if available
+        char_stats = {}
+        if not self.stats_df.empty:
+            stats_row = self.stats_df[self.stats_df['character'] == character_name]
+            if not stats_row.empty:
+                char_stats = stats_row.iloc[0].to_dict()
+        
         result = {
             'character': character_name,
             'inventory': inventory,
             'equipment': equipment,
             'containers': containers,
             'total_items': len(char_data),
-            'total_quantity': int(char_data['quantity'].astype(int).sum())
+            'total_quantity': int(char_data['quantity'].astype(int).sum()),
+            'stats': char_stats  # Add character stats
         }
         
         return self.clean_nan_values(result)
