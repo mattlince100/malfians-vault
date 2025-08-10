@@ -57,19 +57,45 @@ class HouseConverter:
     
     def parse_room_line(self, line):
         """Parse a room definition line."""
-        # Format: "1. Room Name (description) - has: container1, container2"
-        match = re.match(r'\d+\.\s*(.+?)\s*(?:\([^)]*\))?\s*-\s*has:\s*(.+)', line)
-        if match:
-            room_name = match.group(1).strip()
-            containers_text = match.group(2).strip()
-            containers = [c.strip() for c in containers_text.split(',')]
-            self.rooms[room_name] = containers
-        else:
-            # Simple format: "Room Name - has: containers"
-            if ' - has:' in line:
-                room_name, containers_text = line.split(' - has:', 1)
-                room_name = room_name.strip()
-                containers = [c.strip() for c in containers_text.split(',')]
+        # Skip empty lines
+        if not line.strip():
+            return
+            
+        # Try multiple formats to be more flexible
+        # Format 1: "1. Room Name (description) - has: container1, container2"
+        # Format 2: "1. Room Name (description) - has container1, container2"  
+        # Format 3: "1. Room Name - has: container1, container2"
+        
+        # Look for "has" keyword with containers after it
+        if ' has' in line.lower():
+            # Split on " - has" or just "has"
+            if ' - has' in line.lower():
+                parts = line.split(' - has', 1)
+            elif '-has' in line.lower():
+                parts = line.split('-has', 1) 
+            elif ' has ' in line.lower():
+                parts = line.split(' has ', 1)
+            else:
+                return
+                
+            if len(parts) == 2:
+                # Extract room name from first part
+                room_part = parts[0].strip()
+                containers_part = parts[1].strip()
+                
+                # Remove leading number if present (e.g., "1. ")
+                room_part = re.sub(r'^\d+\.\s*', '', room_part)
+                
+                # Remove parenthetical descriptions
+                room_name = re.sub(r'\s*\([^)]*\)\s*', ' ', room_part).strip()
+                
+                # Remove colon from containers part if present
+                containers_part = containers_part.lstrip(':').strip()
+                
+                # Split containers
+                containers = [c.strip() for c in containers_part.split(',')]
+                
+                # Store the room
                 self.rooms[room_name] = containers
     
     def parse_path_line(self, line):
@@ -82,12 +108,54 @@ class HouseConverter:
                 room_name = room_name.strip()
                 path_desc = path_desc.strip()
                 
+                # Try to match this room name with existing parsed rooms (fuzzy matching for typos)
+                matched_room = self.find_matching_room(room_name)
+                if matched_room:
+                    room_name = matched_room  # Use the canonical room name
+                
                 if path_desc == 'starting room' or 'starting' in path_desc:
                     self.paths[room_name] = 'start'
                 else:
                     # Parse "from Room, go direction, then direction"
                     path = self.parse_path_description(path_desc)
                     self.paths[room_name] = path
+    
+    def find_matching_room(self, room_name):
+        """Find a matching room name accounting for typos and variations."""
+        room_lower = room_name.lower().strip()
+        
+        # Exact match first
+        for existing_room in self.rooms.keys():
+            if existing_room.lower() == room_lower:
+                return existing_room
+        
+        # Partial match - if one contains the other
+        for existing_room in self.rooms.keys():
+            existing_lower = existing_room.lower()
+            # Check if they're very similar (one typo difference)
+            if self.similar_strings(existing_lower, room_lower):
+                return existing_room
+                
+        return room_name  # Return original if no match found
+    
+    def similar_strings(self, s1, s2):
+        """Check if two strings are similar (allowing for small typos)."""
+        # Simple similarity check - could be enhanced
+        if abs(len(s1) - len(s2)) > 2:
+            return False
+            
+        # Check if most words match
+        words1 = set(s1.split())
+        words2 = set(s2.split())
+        
+        if not words1 or not words2:
+            return False
+            
+        common = words1.intersection(words2)
+        total = max(len(words1), len(words2))
+        
+        # If 70% or more words match, consider them similar
+        return len(common) >= total * 0.7
     
     def parse_path_description(self, desc):
         """Convert natural language path to technical format."""
