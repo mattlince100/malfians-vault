@@ -267,8 +267,8 @@ def main():
         
         print(f"\nNext steps:")
         print(f"1. Make sure '{csv_data['character']}' is in your characters.csv file")
-        print(f"2. Run a scan with --house flag to capture your house inventory!")
-        print(f"3. View your house map in the web interface")
+        print(f"2. Run a scan to capture your house inventory: python main.py --single {csv_data['character']}")
+        print(f"3. View your house inventory in the web interface")
         
     except Exception as e:
         print(f"ERROR: Converting house failed: {str(e)}")

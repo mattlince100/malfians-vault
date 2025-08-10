@@ -93,9 +93,11 @@ python main.py
 python main.py --single CharacterName
 ```
 
-#### House Scan (for homeowner characters)
+#### House Scanning
+Houses are scanned automatically when a character has a house configured in `houses_v2.csv`.
+No special flag needed - just run:
 ```bash
-python main.py --house --single CharacterName
+python main.py --single CharacterName
 ```
 
 #### Start Web Interface

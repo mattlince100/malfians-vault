@@ -52,7 +52,7 @@ HOW TO GET TO EACH ROOM:
 2. Run: `python house_converter.py my_house.txt`
 3. The system automatically creates the technical files
 4. Make sure your character is in `characters.csv` 
-5. Your house is ready to scan with `--house` flag!
+5. Your house will be scanned automatically when you scan that character!
 
 ## Super Simple Rules
 
