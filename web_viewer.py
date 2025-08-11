@@ -204,6 +204,16 @@ class InventoryViewer:
     def get_character_stats(self):
         """Get character statistics with custom roles."""
         if self.stats_df.empty:
+            logger.warning("stats_df is empty, no character stats available")
+            return []
+        
+        logger.info(f"Processing {len(self.stats_df)} rows from stats_df")
+        logger.info(f"Stats_df columns: {list(self.stats_df.columns)}")
+        
+        # Check if we have character data vs item data
+        if 'item_name' in self.stats_df.columns:
+            logger.error("ERROR: stats_df contains item data instead of character data!")
+            logger.error("This suggests character_stats.csv file is corrupted with inventory data")
             return []
         
         # Load custom roles
@@ -580,7 +590,17 @@ def api_stats():
 @app.route('/api/character-stats')
 def api_character_stats():
     """API endpoint for getting character statistics."""
-    return jsonify(viewer.get_character_stats())
+    stats = viewer.get_character_stats()
+    
+    # Debug logging
+    if stats and len(stats) > 0:
+        logger.info(f"Returning {len(stats)} character stats")
+        logger.info(f"First stat keys: {list(stats[0].keys()) if stats[0] else 'None'}")
+        logger.info(f"First stat character: {stats[0].get('character', 'NOT SET') if stats[0] else 'None'}")
+    else:
+        logger.warning("No character stats to return")
+    
+    return jsonify(stats)
 
 @app.route('/api/update-role', methods=['POST'])
 def update_character_role():
