@@ -164,6 +164,12 @@ class DataManager:
         if not self.character_stats:
             logger.warning("No character stats to export")
             return None
+        
+        logger.info(f"Exporting {len(self.character_stats)} character stats")
+        if self.character_stats:
+            first_stat = self.character_stats[0]
+            logger.info(f"First character stat keys: {list(first_stat.keys())}")
+            logger.info(f"First character name: {first_stat.get('character', 'NOT SET')}")
             
         if filename is None:
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
