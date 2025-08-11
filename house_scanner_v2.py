@@ -122,12 +122,12 @@ class HouseScannerV2:
     def _parse_room_config(self, rooms_str: str) -> List[Dict]:
         """Parse room configuration string into structured format.
         
-        Format: "RoomName:path:container1,container2|RoomName2:path2:container3,container4"
-        Uses | as room separator to allow ; in paths
+        Format: "RoomName:path:container1;container2|RoomName2:path2:container3;container4"
+        Uses | as room separator and ; as container separator
         Special paths:
         - "start" or empty = starting room (where secthome takes you)
         - "u" = up, "d" = down, "n" = north, etc.
-        - "u;n;e" = up, then north, then east
+        - "u;n;e" = up, then north, then east (paths also use ;)
         """
         rooms = []
         
@@ -182,7 +182,7 @@ class HouseScannerV2:
                 room_name = parts[0].strip()
                 room_path = parts[1].strip()
                 containers_str = ':'.join(parts[2:]).strip()  # Rejoin in case container names have colons
-                containers = [c.strip() for c in containers_str.split(',') if c.strip()]
+                containers = [c.strip() for c in containers_str.split(';') if c.strip()]
                 
                 rooms.append({
                     'name': room_name,
