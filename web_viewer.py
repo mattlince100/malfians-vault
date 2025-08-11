@@ -346,7 +346,7 @@ class InventoryViewer:
             'equipment': equipment,
             'containers': containers,
             'total_items': len(char_data),
-            'total_quantity': int(char_data['quantity'].astype(int).sum()),
+            'total_quantity': int(char_data['quantity'].fillna(0).astype(int).sum()),
             'stats': char_stats  # Add character stats
         }
         
@@ -408,7 +408,7 @@ class InventoryViewer:
         
         # Group by item name and sum quantities
         vault_data = container_items.groupby(['item_name', 'location']).agg({
-            'quantity': lambda x: int(x.astype(int).sum()),
+            'quantity': lambda x: int(x.fillna(0).astype(int).sum()),
             'character': lambda x: ', '.join(x.unique()),  # Join characters as string
             'raw_line': 'first'
         }).reset_index()
@@ -475,7 +475,7 @@ class InventoryViewer:
         return {
             'total_characters': int(self.df['character'].nunique()),
             'total_items': len(self.df),
-            'total_quantity': int(self.df['quantity'].astype(int).sum()),
+            'total_quantity': int(self.df['quantity'].fillna(0).astype(int).sum()),
             'unique_items': int(self.df['item_name'].nunique()),
             'container_items': len(self.df[
                 ((self.df['location'].str.startswith('my.')) & 

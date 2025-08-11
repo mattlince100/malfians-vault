@@ -26,9 +26,15 @@ class DataManager:
         """Normalize character name to consistent capitalization."""
         if not name:
             return name
+        
+        # Strip ANSI escape codes from character names
+        import re
+        clean_name = re.sub(r'\x1b\[[0-9;]*m', '', str(name))
+        clean_name = re.sub(r'\\x1b\[[0-9;]*m', '', clean_name)
+        
         # Capitalize first letter, keep rest as-is for now
         # This ensures consistent casing for new characters
-        return name.strip().capitalize()
+        return clean_name.strip().capitalize()
     
     def _load_existing_data(self):
         """Load existing inventory and character stats data from previous scans."""
