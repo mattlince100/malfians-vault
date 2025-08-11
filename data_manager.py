@@ -26,9 +26,9 @@ class DataManager:
         """Normalize character name to consistent capitalization."""
         if not name:
             return name
-        # Capitalize first letter, keep rest as-is for now
-        # This ensures consistent casing for new characters
-        return name.strip().capitalize()
+        # Just strip whitespace and preserve original casing
+        # Don't use .capitalize() as it can break names like "McBride" or "O'Connor"
+        return name.strip()
     
     def _load_existing_data(self):
         """Load existing inventory and character stats data from previous scans."""
@@ -134,16 +134,25 @@ class DataManager:
             logger.info(f"Added {len(character_data)} new items for character: {normalized_name}")
         
         if char_stats:
-            # Normalize character name in stats
-            normalized_name = self.normalize_character_name(char_stats['character'])
+            original_char_name = char_stats['character']
+            
+            # Don't normalize house character names - they need exact case matching
+            if '_house' in original_char_name.lower() or '_House' in original_char_name:
+                normalized_name = original_char_name  # Keep house names exactly as-is
+            else:
+                normalized_name = self.normalize_character_name(original_char_name)
+            
             char_stats['character'] = normalized_name
             char_name = normalized_name.lower()
+            
+            logger.info(f"Processing character stats: '{original_char_name}' → '{normalized_name}'")
             
             # Find and replace existing stats for this character
             existing_index = None
             for i, existing_stats in enumerate(self.character_stats):
                 if existing_stats['character'].lower() == char_name:
                     existing_index = i
+                    logger.info(f"Found existing stats for '{char_name}' at index {i}")
                     break
             
             if existing_index is not None:
@@ -153,7 +162,7 @@ class DataManager:
             else:
                 # Add new character stats
                 self.character_stats.append(char_stats)
-                logger.info(f"Added new character: {normalized_name}")
+                logger.info(f"Added new character: {normalized_name} (total characters: {len(self.character_stats)})")
         
         total_items = len(self.all_data)
         total_characters = len(set(item['character'].lower() for item in self.all_data))
