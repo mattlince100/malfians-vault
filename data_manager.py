@@ -188,31 +188,45 @@ class DataManager:
             # Clean character_stats data for CSV export
             clean_stats = []
             for stat in self.character_stats:
-                if isinstance(stat, dict):
-                    # Convert any nested structures to strings for CSV compatibility
-                    clean_stat = {}
-                    for key, value in stat.items():
-                        if isinstance(value, (dict, list)):
-                            clean_stat[key] = str(value)
-                        else:
-                            clean_stat[key] = value
-                    clean_stats.append(clean_stat)
-                elif hasattr(stat, 'to_dict'):
-                    # Handle pandas Series objects
-                    clean_stat = {}
-                    stat_dict = stat.to_dict() if hasattr(stat, 'to_dict') else dict(stat)
-                    for key, value in stat_dict.items():
-                        if isinstance(value, (dict, list)):
-                            clean_stat[key] = str(value)
-                        else:
-                            clean_stat[key] = value
-                    clean_stats.append(clean_stat)
+                clean_stat = {}
+                
+                # Convert pandas Series to dict if needed
+                if hasattr(stat, 'to_dict'):
+                    stat_dict = stat.to_dict()
+                elif isinstance(stat, dict):
+                    stat_dict = stat
                 else:
                     logger.warning(f"Unexpected character stat type: {type(stat)} - skipping")
                     continue
+                
+                # Clean each field for CSV compatibility
+                for key, value in stat_dict.items():
+                    if isinstance(value, (dict, list)):
+                        clean_stat[key] = str(value)
+                    elif key == 'raw_score' and value:
+                        # Special handling for raw_score to prevent CSV corruption
+                        import re
+                        clean_value = str(value)
+                        # Strip ANSI codes and replace newlines with spaces
+                        clean_value = re.sub(r'\x1b\[[0-9;]*m', '', clean_value)
+                        clean_value = re.sub(r'\\x1b\[[0-9;]*m', '', clean_value)
+                        clean_value = clean_value.replace('\n', ' ').replace('\r', ' ')
+                        # Truncate if too long to prevent CSV issues
+                        if len(clean_value) > 1000:
+                            clean_value = clean_value[:1000] + '...'
+                        clean_stat[key] = clean_value
+                    else:
+                        # Convert to string and clean any problematic characters
+                        clean_value = str(value) if value is not None else ''
+                        # Remove any remaining newlines or special chars that could break CSV
+                        clean_value = clean_value.replace('\n', ' ').replace('\r', ' ')
+                        clean_stat[key] = clean_value
+                
+                clean_stats.append(clean_stat)
             
             df_stats = pd.DataFrame(clean_stats)
-            df_stats.to_csv(filename, index=False)
+            # Use proper CSV escaping to handle any remaining special characters
+            df_stats.to_csv(filename, index=False, escapechar='\\', quoting=1)
             logger.info(f"Exported {len(df_stats)} character stats to {filename}")
             return filename
             
