@@ -76,10 +76,28 @@ class DataManager:
                 
                 if latest_file:
                     df = pd.read_csv(latest_file)
+                    logger.info(f"CSV file contains {len(df)} character records")
+                    
                     # Convert to dict but keep as a dict indexed by character name for deduplication
-                    existing_stats = {row['character'].lower(): row for _, row in df.iterrows()}
+                    existing_stats = {}
+                    duplicate_count = 0
+                    
+                    for _, row in df.iterrows():
+                        char_name = str(row['character']).strip()
+                        char_key = char_name.lower()
+                        
+                        if char_key in existing_stats:
+                            duplicate_count += 1
+                            logger.warning(f"Duplicate character found in CSV: '{char_name}' (lowercase: '{char_key}')")
+                            logger.warning(f"  Existing: {existing_stats[char_key]['character']}")
+                            logger.warning(f"  New: {char_name}")
+                        
+                        existing_stats[char_key] = row
+                    
                     self.character_stats = list(existing_stats.values())
-                    logger.info(f"Loaded {len(self.character_stats)} existing character stats from {latest_file}")
+                    logger.info(f"Loaded {len(self.character_stats)} unique character stats from {latest_file}")
+                    if duplicate_count > 0:
+                        logger.warning(f"Found {duplicate_count} duplicate characters that were deduplicated")
         
         except Exception as e:
             logger.warning(f"Could not load existing data: {e}")
@@ -145,24 +163,28 @@ class DataManager:
             char_stats['character'] = normalized_name
             char_name = normalized_name.lower()
             
-            logger.info(f"Processing character stats: '{original_char_name}' → '{normalized_name}'")
+            logger.info(f"Processing character stats: '{original_char_name}' → '{normalized_name}' (key: '{char_name}')")
+            logger.info(f"Current character_stats list has {len(self.character_stats)} entries before processing")
             
             # Find and replace existing stats for this character
             existing_index = None
             for i, existing_stats in enumerate(self.character_stats):
-                if existing_stats['character'].lower() == char_name:
+                existing_char = existing_stats.get('character', 'UNKNOWN')
+                existing_key = str(existing_char).lower()
+                if existing_key == char_name:
                     existing_index = i
-                    logger.info(f"Found existing stats for '{char_name}' at index {i}")
+                    logger.info(f"Found existing stats for '{char_name}' at index {i} (existing char: '{existing_char}')")
                     break
             
             if existing_index is not None:
                 # Update existing character stats
+                old_char_name = self.character_stats[existing_index].get('character', 'UNKNOWN')
                 self.character_stats[existing_index] = char_stats
-                logger.info(f"Updated stats for character: {normalized_name}")
+                logger.info(f"Updated stats: '{old_char_name}' → '{normalized_name}' (total: {len(self.character_stats)})")
             else:
                 # Add new character stats
                 self.character_stats.append(char_stats)
-                logger.info(f"Added new character: {normalized_name} (total characters: {len(self.character_stats)})")
+                logger.info(f"Added new character: '{normalized_name}' (total: {len(self.character_stats)})")
         
         total_items = len(self.all_data)
         total_characters = len(set(item['character'].lower() for item in self.all_data))
