@@ -56,14 +56,18 @@ class HouseScannerV2:
                         continue
                 
                 # Scan containers in this room
+                logger.info(f"Found {len(containers)} containers to scan in room '{room_name}': {containers}")
                 for container in containers:
                     if container:  # Skip empty container names
-                        logger.debug(f"Scanning container '{container}' in room '{room_name}'")
+                        logger.info(f"Scanning container '{container}' in room '{room_name}'")
                         items = await self.scan_house_container(container, room_name)
+                        logger.info(f"Container '{container}' returned {len(items)} items")
                         all_items.extend(items)
                         
                         # Check for scan pause/cancel
                         await self._check_scan_state()
+                    else:
+                        logger.warning(f"Skipping empty container name in room '{room_name}'")
                 
                 # Return to starting point if we moved
                 if room_path and room_path != "start":
@@ -214,23 +218,37 @@ class HouseScannerV2:
     
     async def scan_house_container(self, container_name: str, room_name: str = "Unknown") -> List[Dict]:
         """Scan a specific container in the house."""
-        logger.debug(f"Scanning house container '{container_name}' in room '{room_name}'")
+        logger.info(f"Attempting to scan house container '{container_name}' in room '{room_name}'")
         
         # First, try to see if the container is visible in the room
         look_response = await self.mud_client.send_command("look", delay=HOUSE_EXAMINE_DELAY)
+        logger.info(f"Look response length: {len(look_response)} chars")
         
         # Then examine the container
-        response = await self.mud_client.send_command(f"exam {container_name}", delay=HOUSE_EXAMINE_DELAY)
+        exam_command = f"exam {container_name}"
+        logger.info(f"Running command: {exam_command}")
+        response = await self.mud_client.send_command(exam_command, delay=HOUSE_EXAMINE_DELAY)
+        logger.info(f"Exam response length: {len(response)} chars")
+        
+        # Log the first 200 chars of the response for debugging
+        logger.info(f"Exam response preview: {response[:200]}...")
         
         # Check if container exists and has contents
-        if any(error in response.lower() for error in [
+        error_messages = [
             "you do not see that here", "you do not see", "what do you want to", "there is no"
-        ]):
-            logger.debug(f"Container '{container_name}' not found in room '{room_name}'")
+        ]
+        found_error = None
+        for error in error_messages:
+            if error in response.lower():
+                found_error = error
+                break
+                
+        if found_error:
+            logger.info(f"Container '{container_name}' not found in room '{room_name}' - found error: '{found_error}'")
             return []
         
         if "appears to be empty" in response.lower():
-            logger.debug(f"Container '{container_name}' in room '{room_name}' is empty")
+            logger.info(f"Container '{container_name}' in room '{room_name}' is empty")
             return []
         
         return self.parse_house_container_output(response, container_name, room_name)
