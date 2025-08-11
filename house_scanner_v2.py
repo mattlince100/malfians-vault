@@ -210,7 +210,10 @@ class HouseScannerV2:
                 "you can't go that way", "the door is locked", "you can't see that here",
                 "what", "there is no", "you don't see"
             ]):
-                logger.error(f"Room navigation failed at step {i+1} '{command}': {response[:100]}")
+                # Strip ANSI codes from error response to prevent terminal leak
+                import re
+                clean_response = re.sub(r'\x1b\[[0-9;]*m', '', response[:100])
+                logger.error(f"Room navigation failed at step {i+1} '{command}': {clean_response}")
                 return False
             
             await self._check_scan_state()
@@ -231,8 +234,10 @@ class HouseScannerV2:
         response = await self.mud_client.send_command(exam_command, delay=HOUSE_EXAMINE_DELAY)
         logger.info(f"Exam response length: {len(response)} chars")
         
-        # Log the first 200 chars of the response for debugging
-        logger.info(f"Exam response preview: {response[:200]}...")
+        # Log the first 200 chars of the response for debugging (strip ANSI codes to prevent terminal leak)
+        import re
+        clean_response = re.sub(r'\x1b\[[0-9;]*m', '', response[:200])
+        logger.info(f"Exam response preview: {clean_response}...")
         
         # Check if container exists and has contents
         error_messages = [
