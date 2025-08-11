@@ -360,13 +360,16 @@ class HouseScannerV2:
         if not item_name:
             return None
             
+        # Clean raw_line to prevent CSV corruption from ANSI codes and newlines
+        clean_raw_line = self.clean_house_item_name(line)
+        
         return {
             'character': f"{self.current_character}_House",
             'location': location,
             'item_name': item_name,
             'quantity': quantity,
             'scan_time': datetime.now().isoformat(),
-            'raw_line': line,
+            'raw_line': clean_raw_line,  # Store cleaned version to prevent CSV corruption
             'house_owner': self.current_character,
             'house_name': self.current_house_name
         }
