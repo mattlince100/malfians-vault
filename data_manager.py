@@ -26,15 +26,9 @@ class DataManager:
         """Normalize character name to consistent capitalization."""
         if not name:
             return name
-        
-        # Strip ANSI escape codes from character names
-        import re
-        clean_name = re.sub(r'\x1b\[[0-9;]*m', '', str(name))
-        clean_name = re.sub(r'\\x1b\[[0-9;]*m', '', clean_name)
-        
         # Capitalize first letter, keep rest as-is for now
         # This ensures consistent casing for new characters
-        return clean_name.strip().capitalize()
+        return name.strip().capitalize()
     
     def _load_existing_data(self):
         """Load existing inventory and character stats data from previous scans."""
@@ -97,6 +91,23 @@ class DataManager:
         if character_data and len(character_data) > 0:
             # Preserve original character name for house characters - don't normalize case for houses
             original_name = character_data[0]['character']
+            
+            # Safety check: ensure character name doesn't contain ANSI codes (indicates corrupted data)
+            import re
+            if re.search(r'[\x1b\\].*?m', str(original_name)):
+                logger.error(f"Character name contains ANSI codes, data may be corrupted: {repr(original_name)}")
+                # Try to extract a clean character name or skip this data
+                clean_name = re.sub(r'\x1b\[[0-9;]*m', '', str(original_name))
+                clean_name = re.sub(r'\\x1b\[[0-9;]*m', '', clean_name).strip()
+                if clean_name and len(clean_name) < 50:  # Reasonable character name length
+                    logger.info(f"Recovered character name: {clean_name}")
+                    original_name = clean_name
+                    # Update all items with clean name
+                    for item in character_data:
+                        item['character'] = clean_name
+                else:
+                    logger.error("Cannot recover character name, skipping corrupted data")
+                    return
             
             # Only normalize non-house characters
             if '_house' not in original_name.lower() and '_House' not in original_name:
