@@ -74,7 +74,7 @@ class HouseScannerV2:
                     # Go back to secthome start point
                     await self.mud_client.send_command("secthome", delay=HOUSE_MOVEMENT_DELAY)
             
-            # Create house "character" stats
+            # Create house "character" stats - ensure all fields match regular character stats
             house_stats = {
                 'character': f"{character_name}_House",
                 'house_name': self.current_house_name,
@@ -102,7 +102,8 @@ class HouseScannerV2:
                 'sect': 'N/A',
                 'sect_role': 'N/A',
                 'order': 'N/A',
-                'order_role': 'N/A'
+                'order_role': 'N/A',
+                'raw_score': f"House Storage for {character_name}"  # Add missing field to prevent CSV corruption
             }
             
             scan_time = time.time() - start_time
