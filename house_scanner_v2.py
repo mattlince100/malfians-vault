@@ -272,6 +272,7 @@ class HouseScannerV2:
             # Enhanced prompt detection - strip ANSI codes first
             import re
             clean_line = re.sub(r'\x1b\[[0-9;]*m', '', line)
+            clean_line = re.sub(r'\\x1b\[[0-9;]*m', '', clean_line)
             
             # Skip character status prompts (e.g., "[Kaan] 1674/1674hp 461mn HY")
             # More comprehensive check for prompts
@@ -283,6 +284,10 @@ class HouseScannerV2:
                 # Check for status flags
                 if any(flag in clean_line for flag in ['HTY', 'HSY', 'HY', 'TY', 'SY']):
                     continue
+            
+            # Skip lines that are purely ANSI codes or whitespace after cleaning
+            if not clean_line.strip() or re.match(r'^[\s\x1b\[\]0-9;m\\]*$', clean_line):
+                continue
                 
             # Look for container contents section
             if "contains:" in line.lower():
@@ -310,9 +315,10 @@ class HouseScannerV2:
         if not line or line.lower() in ['nothing', 'none', 'empty']:
             return None
         
-        # Additional prompt detection - strip ANSI codes first
+        # Enhanced prompt detection - strip ANSI codes first
         import re
-        clean_line = re.sub(r'\x1b\[[0-9;]*m', '', line).strip()
+        clean_line = re.sub(r'\x1b\[[0-9;]*m', '', line)
+        clean_line = re.sub(r'\\x1b\[[0-9;]*m', '', clean_line).strip()
         
         # Skip if this looks like a character prompt
         # Format: [CharacterName] XXX/XXXhp XXXmn (flags) 
@@ -325,6 +331,11 @@ class HouseScannerV2:
         # Also skip if line ends with combat/status flags
         if any(clean_line.endswith(flag) for flag in ['HTY', 'HSY', 'HY', 'TY', 'SY', 'HTY\\', 'HSY\\', 'HY\\']):
             logger.debug(f"Skipping status flag line in house container: {clean_line[:50]}")
+            return None
+        
+        # Skip lines that are purely ANSI codes or whitespace after cleaning
+        if not clean_line or re.match(r'^[\s\x1b\[\]0-9;m\\]*$', clean_line):
+            logger.debug(f"Skipping ANSI/empty line in house container: {repr(line[:50])}")
             return None
             
         # Extract quantity if present - look for patterns like "(2)" or "(15)" at the end
@@ -356,8 +367,14 @@ class HouseScannerV2:
     
     def clean_house_item_name(self, name: str) -> str:
         """Clean and normalize house item name."""
-        # Keep ANSI codes - they're part of the item display!
-        # Just strip whitespace - keep all magical properties and modifiers
+        import re
+        
+        # Strip ANSI escape codes that are causing corruption
+        # These are appearing in character names and corrupting the display
+        name = re.sub(r'\x1b\[[0-9;]*m', '', name)
+        name = re.sub(r'\\x1b\[[0-9;]*m', '', name)
+        
+        # Strip whitespace
         name = name.strip()
         
         # Remove leading articles if they're at the very beginning
