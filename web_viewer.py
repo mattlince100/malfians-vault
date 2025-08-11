@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 from flask import Flask, render_template, request, jsonify, send_from_directory, session
 import secrets
+import logging
 from pathlib import Path
 import glob
 from datetime import datetime
@@ -17,6 +18,9 @@ from container_manager import ContainerManager
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
+
+# Initialize logger
+logger = logging.getLogger(__name__)
 
 def generate_csrf_token():
     """Generate a CSRF token for the session."""
