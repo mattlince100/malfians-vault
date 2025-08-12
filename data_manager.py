@@ -300,8 +300,21 @@ class DataManager:
         if 'house_name' in df.columns:
             export_columns.append('house_name')
             
-        df[export_columns].to_csv(filename, index=False)
-        logger.info(f"Exported {len(df)} items to {filename}")
+        # Clean data for CSV export to prevent escaping errors
+        export_df = df[export_columns].copy()
+        
+        # Clean any fields that might contain problematic characters
+        for col in export_df.columns:
+            if col in ['raw_line', 'item_name']:
+                # Clean fields that might contain ANSI codes or newlines
+                export_df[col] = export_df[col].astype(str).str.replace('\n', ' ').str.replace('\r', ' ')
+                # Strip ANSI codes from these fields
+                import re
+                export_df[col] = export_df[col].apply(lambda x: re.sub(r'\x1b\[[0-9;]*m', '', str(x)))
+        
+        # Use proper CSV escaping to handle any remaining special characters
+        export_df.to_csv(filename, index=False, escapechar='\\', quoting=1)
+        logger.info(f"Exported {len(export_df)} items to {filename}")
         
         return filename
     

@@ -181,8 +181,8 @@ class InventoryViewer:
         stats_files = glob.glob("character_stats_*.csv")
         if stats_files:
             latest_stats_file = max(stats_files, key=os.path.getctime)
-            # Read CSV with proper handling of escape sequences
-            self.stats_df = pd.read_csv(latest_stats_file, encoding='utf-8', escapechar=None)
+            # Read CSV with proper handling of escape sequences (match the escapechar used in export)
+            self.stats_df = pd.read_csv(latest_stats_file, encoding='utf-8', escapechar='\\')
             print(f"Loaded character stats from: {latest_stats_file}")
             print(f"Successfully reloaded {len(self.df)} items and {len(self.stats_df)} character stats")
             
