@@ -99,6 +99,7 @@ service_account.json
 # Local configuration overrides
 config_local.py
 local_settings.py
+hostname.conf
 
 # Development and testing files
 scratch/

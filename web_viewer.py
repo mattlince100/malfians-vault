@@ -847,4 +847,13 @@ if __name__ == '__main__':
     Path('templates').mkdir(exist_ok=True)
     Path('static').mkdir(exist_ok=True)
     
-    app.run(debug=True, host='127.0.0.1', port=5000)
+    # Read hostname from config file, fallback to localhost if file missing
+    try:
+        with open('hostname.conf', 'r') as f:
+            host = f.read().strip()
+        print(f"Using hostname from hostname.conf: {host}")
+    except FileNotFoundError:
+        host = '127.0.0.1'
+        print(f"hostname.conf not found, using default: {host}")
+    
+    app.run(debug=True, host=host, port=5000)
