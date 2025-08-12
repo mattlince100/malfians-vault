@@ -2627,49 +2627,33 @@
         }
         
         function reconstructScoreLines(rawScore) {
-            // Reconstruct proper line breaks from space-separated score data
-            // by understanding MUD score structure patterns
+            // Much simpler approach: only break at the most obvious major boundaries
+            // to avoid breaking up connected content like "STR : 25(18)"
             console.log('reconstructScoreLines: Input length', rawScore.length, 'sample:', rawScore.substring(0, 200));
             
-            // First, try to identify major sections and break them properly
             let text = rawScore;
             
-            // Insert line breaks before major section headers (but not if they're already at start of text)
-            const majorPatterns = [
-                { pattern: /(\s)(Score for [^.]+\.)/g, replacement: '$1\n$2' },
-                { pattern: /(\s)([-]{20,})/g, replacement: '$1\n$2' },
-                { pattern: /(\s)(LEVEL:\s*\d+)/g, replacement: '$1\n$2' },
-                { pattern: /(\s)(YEARS:\s*\d+)/g, replacement: '$1\n$2' },
-                { pattern: /(\s)(Items:\s*\d+)/g, replacement: '$1\n$2' },
-                { pattern: /(\s)(Glory:\s*\d+)/g, replacement: '$1\n$2' },
-                { pattern: /(\s)(Pract:\s*\d+)/g, replacement: '$1\n$2' },
-                { pattern: /(\s)(XP\s*:\s*\d+)/g, replacement: '$1\n$2' }
+            // Only break at the most major boundaries - be very conservative
+            const conservativePatterns = [
+                // Break before "Score for" (header)
+                { pattern: /(\w)(\s+Score for)/g, replacement: '$1\n$2' },
+                // Break before long dashed separator
+                { pattern: /(\w)(\s+[-]{20,})/g, replacement: '$1\n$2' },
+                // Break before major stat blocks - but keep the label with its value
+                { pattern: /(\))(\s+LEVEL:\s*\d+)/g, replacement: '$1\n$2' },
+                { pattern: /(\d{4})(\s+YEARS:\s*\d+)/g, replacement: '$1\n$2' },
+                // Break before bottom sections
+                { pattern: /(\w)(\s+Items:\s*\d+)/g, replacement: '$1\n$2' },
+                { pattern: /(\))(\s+Glory:\s*\d+)/g, replacement: '$1\n$2' },
+                { pattern: /(\d+)(\s+Pract:\s*\d+)/g, replacement: '$1\n$2' },
+                { pattern: /(\))(\s+XP\s*:\s*\d+)/g, replacement: '$1\n$2' }
             ];
             
-            majorPatterns.forEach(({ pattern, replacement }) => {
+            conservativePatterns.forEach(({ pattern, replacement }) => {
                 text = text.replace(pattern, replacement);
             });
             
-            // Handle stat lines (STR, INT, etc.) - these should NOT start new lines but should end them
-            // Look for pattern: "stat : value(modifier) next_stat :" and break before next_stat
-            const statPattern = /(STR|INT|WIS|DEX|CON|CHA|LCK)\s*:\s*\d+\([^)]+\)\s+([A-Z]{3}\s*:)/g;
-            text = text.replace(statPattern, '$1 : $2\n$3');
-            
-            // Handle lines that should definitely start new lines
-            const lineStartPatterns = [
-                /(\s)(HitRoll:\s*\d+)/g,
-                /(\s)(DamRoll:\s*\d+)/g,
-                /(\s)(Align:\s*[+-]?\d+)/g,
-                /(\s)(Armor:\s*[+-]?\d+)/g,
-                /(\s)(Hitpoints:\s*\d+)/g,
-                /(\s)(Gold\s*:\s*[\d,]+)/g
-            ];
-            
-            lineStartPatterns.forEach(pattern => {
-                text = text.replace(pattern, '$1\n$2');
-            });
-            
-            // Clean up multiple newlines and split
+            // Clean up and split
             const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
             
             console.log('reconstructScoreLines: Reconstructed', lines.length, 'lines');
