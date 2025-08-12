@@ -2607,6 +2607,72 @@
             `;
         }
         
+        function reconstructScoreLines(rawScore) {
+            // Reconstruct proper line breaks from space-separated score data
+            // by identifying common MUD score patterns
+            
+            const patterns = [
+                'Score for ',
+                '------------',
+                'LEVEL:',
+                'YEARS:',
+                'STR  :',
+                'INT  :',  
+                'WIS  :',
+                'DEX  :',
+                'CON  :',
+                'CHA  :',
+                'LCK  :',
+                'Items:',
+                'Glory:',
+                'Pract:',
+                'XP   :',
+                'Hitpoints:',
+                'Gold :'
+            ];
+            
+            let result = [];
+            let currentLine = '';
+            const words = rawScore.split(' ');
+            
+            for (let i = 0; i < words.length; i++) {
+                const word = words[i];
+                
+                // Check if this word starts a new score line
+                let isNewLine = false;
+                for (const pattern of patterns) {
+                    if (word.includes(pattern.replace(':', '').replace(' ', '')) || 
+                        (currentLine + ' ' + word).includes(pattern)) {
+                        // If we already have content in currentLine and this starts a pattern, finish the current line
+                        if (currentLine.trim() && !currentLine.includes(pattern)) {
+                            isNewLine = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (isNewLine && currentLine.trim()) {
+                    result.push(currentLine.trim());
+                    currentLine = word;
+                } else {
+                    currentLine += (currentLine ? ' ' : '') + word;
+                }
+                
+                // Force line break after dashed separator
+                if (word.includes('--------')) {
+                    result.push(currentLine.trim());
+                    currentLine = '';
+                }
+            }
+            
+            // Add remaining content
+            if (currentLine.trim()) {
+                result.push(currentLine.trim());
+            }
+            
+            return result.filter(line => line.trim().length > 0);
+        }
+        
         function formatRawScore(rawScore, stats) {
             // Check if raw score is valid
             if (!rawScore || typeof rawScore !== 'string' || rawScore.length < 50) {
@@ -2620,13 +2686,22 @@
                 console.log('formatRawScore: Converted literal escape sequences back to actual escape chars');
             }
             
-            console.log('formatRawScore: Processing raw score', { length: rawScore.length, sample: rawScore.substring(0, 200) });
+            // If raw score doesn't have newlines (because CSV export converted them to spaces),
+            // try to reconstruct the original formatting by identifying common score patterns
+            let lines;
+            if (rawScore.includes('\n')) {
+                lines = rawScore.split('\n');
+            } else {
+                // Reconstruct lines from space-separated data by identifying score section markers
+                console.log('formatRawScore: No newlines found, attempting to reconstruct formatting');
+                lines = reconstructScoreLines(rawScore);
+            }
+            
+            console.log('formatRawScore: Processing raw score', { length: rawScore.length, linesCount: lines.length, sample: rawScore.substring(0, 200) });
             
             // Parse and format the raw score output with ANSI colors
             let formatted = '<div class="score-content raw-score" style="line-height: 1.2;">';
             
-            // Split by lines and process each
-            const lines = rawScore.split('\n');
             console.log('formatRawScore: Split into', lines.length, 'lines');
             
             lines.forEach((line, index) => {

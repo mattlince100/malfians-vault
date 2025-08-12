@@ -226,16 +226,16 @@ class DataManager:
                     if isinstance(value, (dict, list)):
                         clean_stat[key] = str(value)
                     elif key == 'raw_score' and value:
-                        # Special handling for raw_score to preserve formatting but prevent CSV corruption
+                        # Special handling for raw_score to prevent CSV corruption
                         import re
                         clean_value = str(value)
-                        # Strip ANSI codes but preserve newlines for proper display
+                        # Strip ANSI codes and replace newlines with spaces for CSV safety
                         clean_value = re.sub(r'\x1b\[[0-9;]*m', '', clean_value)
                         clean_value = re.sub(r'\\x1b\[[0-9;]*m', '', clean_value)
-                        # Don't replace newlines - let CSV quoting handle them properly
+                        clean_value = clean_value.replace('\n', ' ').replace('\r', ' ')
                         # Truncate if too long to prevent CSV issues
-                        if len(clean_value) > 2000:
-                            clean_value = clean_value[:2000] + '...'
+                        if len(clean_value) > 1000:
+                            clean_value = clean_value[:1000] + '...'
                         clean_stat[key] = clean_value
                     else:
                         # Convert to string and clean any problematic characters
