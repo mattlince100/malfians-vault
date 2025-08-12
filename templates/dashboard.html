@@ -2607,70 +2607,77 @@
             `;
         }
         
+        function addScoreLineColoring(line) {
+            // Add synthetic coloring to score lines that lost their ANSI codes
+            // Pattern: "LABEL: value" gets green label, white value
+            return line.replace(/([A-Z][A-Z\s]+):\s*([^A-Z\n]+)/g, 
+                '<span style="color: #32cd32; font-weight: bold;">$1:</span> <span style="color: white;">$2</span>');
+        }
+        
+        function addGoldColoring(line) {
+            // Add yellow coloring to gold amounts
+            return line.replace(/(Gold\s*:\s*)([\d,]+)/g, 
+                '<span style="color: #32cd32; font-weight: bold;">$1</span><span style="color: #ffff00;">$2</span>');
+        }
+        
+        function addStatColoring(line) {
+            // Add coloring to stat lines like "STR : 25(18)"
+            return line.replace(/([A-Z]{3})\s*:\s*(\d+)\((\d+)\)/g, 
+                '<span style="color: #32cd32; font-weight: bold;">$1 :</span> <span style="color: white;">$2</span><span style="color: #32cd32;">($3)</span>');
+        }
+        
         function reconstructScoreLines(rawScore) {
             // Reconstruct proper line breaks from space-separated score data
-            // by identifying common MUD score patterns
+            // by understanding MUD score structure patterns
+            console.log('reconstructScoreLines: Input length', rawScore.length, 'sample:', rawScore.substring(0, 200));
             
-            const patterns = [
-                'Score for ',
-                '------------',
-                'LEVEL:',
-                'YEARS:',
-                'STR  :',
-                'INT  :',  
-                'WIS  :',
-                'DEX  :',
-                'CON  :',
-                'CHA  :',
-                'LCK  :',
-                'Items:',
-                'Glory:',
-                'Pract:',
-                'XP   :',
-                'Hitpoints:',
-                'Gold :'
+            // First, try to identify major sections and break them properly
+            let text = rawScore;
+            
+            // Insert line breaks before major section headers (but not if they're already at start of text)
+            const majorPatterns = [
+                { pattern: /(\s)(Score for [^.]+\.)/g, replacement: '$1\n$2' },
+                { pattern: /(\s)([-]{20,})/g, replacement: '$1\n$2' },
+                { pattern: /(\s)(LEVEL:\s*\d+)/g, replacement: '$1\n$2' },
+                { pattern: /(\s)(YEARS:\s*\d+)/g, replacement: '$1\n$2' },
+                { pattern: /(\s)(Items:\s*\d+)/g, replacement: '$1\n$2' },
+                { pattern: /(\s)(Glory:\s*\d+)/g, replacement: '$1\n$2' },
+                { pattern: /(\s)(Pract:\s*\d+)/g, replacement: '$1\n$2' },
+                { pattern: /(\s)(XP\s*:\s*\d+)/g, replacement: '$1\n$2' }
             ];
             
-            let result = [];
-            let currentLine = '';
-            const words = rawScore.split(' ');
+            majorPatterns.forEach(({ pattern, replacement }) => {
+                text = text.replace(pattern, replacement);
+            });
             
-            for (let i = 0; i < words.length; i++) {
-                const word = words[i];
-                
-                // Check if this word starts a new score line
-                let isNewLine = false;
-                for (const pattern of patterns) {
-                    if (word.includes(pattern.replace(':', '').replace(' ', '')) || 
-                        (currentLine + ' ' + word).includes(pattern)) {
-                        // If we already have content in currentLine and this starts a pattern, finish the current line
-                        if (currentLine.trim() && !currentLine.includes(pattern)) {
-                            isNewLine = true;
-                            break;
-                        }
-                    }
-                }
-                
-                if (isNewLine && currentLine.trim()) {
-                    result.push(currentLine.trim());
-                    currentLine = word;
-                } else {
-                    currentLine += (currentLine ? ' ' : '') + word;
-                }
-                
-                // Force line break after dashed separator
-                if (word.includes('--------')) {
-                    result.push(currentLine.trim());
-                    currentLine = '';
-                }
+            // Handle stat lines (STR, INT, etc.) - these should NOT start new lines but should end them
+            // Look for pattern: "stat : value(modifier) next_stat :" and break before next_stat
+            const statPattern = /(STR|INT|WIS|DEX|CON|CHA|LCK)\s*:\s*\d+\([^)]+\)\s+([A-Z]{3}\s*:)/g;
+            text = text.replace(statPattern, '$1 : $2\n$3');
+            
+            // Handle lines that should definitely start new lines
+            const lineStartPatterns = [
+                /(\s)(HitRoll:\s*\d+)/g,
+                /(\s)(DamRoll:\s*\d+)/g,
+                /(\s)(Align:\s*[+-]?\d+)/g,
+                /(\s)(Armor:\s*[+-]?\d+)/g,
+                /(\s)(Hitpoints:\s*\d+)/g,
+                /(\s)(Gold\s*:\s*[\d,]+)/g
+            ];
+            
+            lineStartPatterns.forEach(pattern => {
+                text = text.replace(pattern, '$1\n$2');
+            });
+            
+            // Clean up multiple newlines and split
+            const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+            
+            console.log('reconstructScoreLines: Reconstructed', lines.length, 'lines');
+            if (lines.length > 0) {
+                console.log('reconstructScoreLines: First few lines:', lines.slice(0, 5));
             }
             
-            // Add remaining content
-            if (currentLine.trim()) {
-                result.push(currentLine.trim());
-            }
-            
-            return result.filter(line => line.trim().length > 0);
+            return lines;
         }
         
         function formatRawScore(rawScore, stats) {
@@ -2718,24 +2725,32 @@
                     console.log('formatRawScore: Processing line', index, { original: line.substring(0, 100), clean: lineClean.substring(0, 100) });
                 }
                 
-                // Format different types of score lines with ANSI color preservation
+                // Format different types of score lines with synthetic coloring if ANSI is missing
                 if (lineClean.includes('Score for')) {
-                    // Header line
-                    const processed = ansiToHtml(line);
+                    // Header line - add cyan color if not present
+                    let processed = line.includes('\x1b[') ? ansiToHtml(line) : `<span style="color: #00ffff; font-weight: bold;">${line}</span>`;
                     console.log('formatRawScore: Score header', { original: line.substring(0, 50), processed: processed.substring(0, 100) });
                     formatted += `<div class="score-header">${processed}</div>`;
+                } else if (lineClean.includes('----')) {
+                    // Separator line - add cyan color
+                    let processed = line.includes('\x1b[') ? ansiToHtml(line) : `<span style="color: #00ffff;">${line}</span>`;
+                    formatted += `<div class="score-row">${processed}</div>`;
                 } else if (lineClean.includes('LEVEL:') && lineClean.includes('Race')) {
-                    // LEVEL: 50          Race : Half-orc
-                    formatted += `<div class="score-row">${ansiToHtml(line)}</div>`;
-                } else if (lineClean.includes('Class:')) {
-                    // YEARS: 262         Class: Warrior
-                    formatted += `<div class="score-row">${ansiToHtml(line)}</div>`;
+                    // LEVEL: 50          Race : Half-orc - add green color to labels
+                    let processed = line.includes('\x1b[') ? ansiToHtml(line) : addScoreLineColoring(line);
+                    formatted += `<div class="score-row">${processed}</div>`;
+                } else if (lineClean.includes('Class:') || lineClean.includes('YEARS:')) {
+                    // YEARS: 262         Class: Warrior - add green color to labels  
+                    let processed = line.includes('\x1b[') ? ansiToHtml(line) : addScoreLineColoring(line);
+                    formatted += `<div class="score-row">${processed}</div>`;
                 } else if (lineClean.includes('Align:')) {
-                    // DEX  : 21(14)      Align: +1000, devout
-                    formatted += `<div class="score-row">${ansiToHtml(line)}</div>`;
+                    // DEX  : 21(14)      Align: +1000, devout - add green color to labels
+                    let processed = line.includes('\x1b[') ? ansiToHtml(line) : addScoreLineColoring(line);
+                    formatted += `<div class="score-row">${processed}</div>`;
                 } else if (lineClean.includes('Gold :')) {
-                    // Gold : 17,737,804
-                    formatted += `<div class="score-row">${ansiToHtml(line)}</div>`;
+                    // Gold : 17,737,804 - add yellow color to gold values
+                    let processed = line.includes('\x1b[') ? ansiToHtml(line) : addGoldColoring(line);
+                    formatted += `<div class="score-row">${processed}</div>`;
                 } else if (lineClean.includes('HitRoll:') || lineClean.includes('DamRoll:')) {
                     // HitRoll: 70               Saved: no save this session
                     formatted += `<div class="score-row">${ansiToHtml(line)}</div>`;
@@ -2748,13 +2763,13 @@
                 } else if (lineClean.includes('STR') || lineClean.includes('INT') || lineClean.includes('WIS') || 
                           lineClean.includes('DEX') || lineClean.includes('CON') || lineClean.includes('CHA')) {
                     // Stats lines like: STR  : 21(18)      INT  : 17(17)
-                    const processedLine = ansiToHtml(line);
+                    let processed = line.includes('\x1b[') ? ansiToHtml(line) : addStatColoring(line);
                     console.log('formatRawScore: Processing STR line', { 
                         original: line.substring(0, 100), 
-                        processed: processedLine.substring(0, 150),
+                        processed: processed.substring(0, 150),
                         hasAnsi: line.includes('\x1b[')
                     });
-                    formatted += `<div class="score-row stats-row">${processedLine}</div>`;
+                    formatted += `<div class="score-row stats-row">${processed}</div>`;
                 } else if (line.trim()) {
                     // Any other non-empty line
                     formatted += `<div class="score-row">${ansiToHtml(line)}</div>`;
